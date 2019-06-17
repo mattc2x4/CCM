@@ -1,0 +1,14 @@
+Carbon has ID 1, index 0
+Oxygen has ID 2, index 1
+Nitrogen has ID 3, index 2
+Hydrogen has ID 4, index 3
+
+number of items in Clist *3 = 3 atoms? weird, explore purpose of this
+O-id, C-id, OC desired dist, F1 for OC, F2 for OC, min distance for applyng force, Max distance for force (OC)
+O-id, H-id, OH desired dist, F1 for OH, F2 for OH, min distance for applyng force, Max distance for force (OH)
+C-id, N-id, CN desired dist, F1 for CN, F2 for CN, min distance for applyng force, Max distance for force (CN)
+
+3
+2 1 1.95 50 0.5 1.3 1.6
+2 4 1.1 250 0.75 1.5 8.0
+1 3 1.5 300 0.75 3.0 8.0
