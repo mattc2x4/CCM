@@ -3,6 +3,10 @@
 Created on Thu Jun 13 09:59:40 2019
 
 @author: mattcohe
+
+THis is the most recent and fixed version.  It could still use quite a few changes
+check search more
+remove second for loop in search responsible for appending to the rest-ALLData.txt. 
 """
 
 # run this python script as master for simulations requiring restraint energy.
