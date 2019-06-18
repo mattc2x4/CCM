@@ -26,11 +26,11 @@ int main() {
 		//cout<<nRowsrest<<endl;
 		restMatrix = new double*[nRowsrest];//creates an array of arrays on the heap, so it does not go out of scope
 		for (int i = 0; i < nRowsrest; i++) {
-			restMatrix[i] = new double[5];//5? this is very odd.  I guess he only cares about the first five things in each row, which makes sense
+			restMatrix[i] = new double[7];//5? this is very odd.  I guess he only cares about the first five things in each row, which makes sense
 		}
 		// fill 2d array with infile parameters
 		for (int i = 0; i < nRowsrest; i++) {
-			for (int j = 0; j < 5; j++) {
+			for (int j = 0; j < 7; j++) {
 				restfile >> restMatrix[i][j];
 			}
 		}
@@ -40,8 +40,8 @@ int main() {
 		restMatrix = new double*[1]; // wouldn't be used in this case anyway?
 	}
 	 for (int i = 0; i < nRowsrest; i++){
-			  for (int j = 0; j < 5; j++){
-				  cout << restMatrix[i][j] << "  ";
+			  for (int j = 0; j < 7; j++){
+				  cout <<"i:"<<i<<" "<<"j:"<<j<<" "<< restMatrix[i][j] << ",  ";
 			  }
 			  cout << endl;
 		  }
@@ -50,6 +50,7 @@ int main() {
 	 for (int i = 0; i < nRowsrest; i++) {
 	 			delete restMatrix[i];
 	 		}
+	 delete[] restMatrix;
 	return 0;
 }
 

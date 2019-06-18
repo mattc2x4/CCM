@@ -60,11 +60,11 @@ void Bonds( reax_system *system, control_params * /*control*/,
 	  // allocate
 	  restMatrix = new double*[nRowsrest];		//creates an array of arrays on the heap, so it does not go out of scope
 	  for (i = 0; i < nRowsrest; i++) {
-		  restMatrix[i] = new double[5];		//5? this is very odd.  I guess he only cares about the first five things in each row, which makes sense
+		  restMatrix[i] = new double[7];		//7 is the number of items for each line. oddly, leaving it at five seemed to have no effect
 	  }
 	  // fill 2d array with infile parameters
 	  for (i = 0; i < nRowsrest; i++) {
-		  for (j = 0; j < 5; j++) {
+		  for (j = 0; j < 7; j++) {				//change made here, ethan had it going to 5, which resulted in an error.
 			  restfile >> restMatrix[i][j];
 		  }
 	  }
