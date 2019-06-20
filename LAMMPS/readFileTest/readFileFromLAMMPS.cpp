@@ -13,24 +13,29 @@
 using namespace std;
 
 int main() {
-	double F1rest, F2rest, R12rest, Erest;
+
+	//this portion used to test file reading in reaxc_nonbonded.cpp
+
+	/*
+	double F1rest, F2rest, R12rest, Erest, dErestdr;
+	int i, j, pj, natoms;
 	int id1rest, id2rest;
-	double Rijrest, dxrest, dyrest, dzrest;
+	double Rijrest, dxrest, dyrest, dzrest, Rminrest, Rmaxrest, dErestx,
+			dEresty, dErestz;
 	int nRowsrest;
-	double dub = 0;
 	double** restMatrix; // pointer to pointer (dynamic memory allocation); is deallocated at end of file
+	// read in the restraint parameter data file
 	std::ifstream restfile("rest-data.txt");
 	if (restfile.is_open()) {
-		restfile >> nRowsrest;		//grabs number of atoms, listed by python
+		restfile >> nRowsrest;
 		// allocate
-		//cout<<nRowsrest<<endl;
-		restMatrix = new double*[nRowsrest];//creates an array of arrays on the heap, so it does not go out of scope
-		for (int i = 0; i < nRowsrest; i++) {
-			restMatrix[i] = new double[7];//5? this is very odd.  I guess he only cares about the first five things in each row, which makes sense
+		restMatrix = new double*[nRowsrest];
+		for (i = 0; i < nRowsrest; i++) {
+			restMatrix[i] = new double[7];
 		}
 		// fill 2d array with infile parameters
-		for (int i = 0; i < nRowsrest; i++) {
-			for (int j = 0; j < 7; j++) {
+		for (i = 0; i < nRowsrest; i++) {
+			for (j = 0; j < 7; j++) {
 				restfile >> restMatrix[i][j];
 			}
 		}
@@ -39,20 +44,25 @@ int main() {
 		std::cout << "Unable to open restraint parameter file" << std::endl;
 		restMatrix = new double*[1]; // wouldn't be used in this case anyway?
 	}
-	 for (int i = 0; i < nRowsrest; i++){
-			  for (int j = 0; j < 7; j++){
-				  cout <<"i:"<<i<<" "<<"j:"<<j<<" "<< restMatrix[i][j] << ",  ";
-			  }
-			  cout << endl;
-		  }
-	 dub = double(restMatrix[1][0]);
-	 cout<<"\n"<< dub<<endl;
-	 for (int i = 0; i < nRowsrest; i++) {
-	 			delete restMatrix[i];
-	 		}
-	 delete[] restMatrix;
+	for (int q = 0; q < nRowsrest; q++) {
+		for (int w = 0; w < 7; w++) {
+			cout << restMatrix[q][w] << "  ";
+		}
+		cout << endl;
+	}
+	for (int q = 0; q < nRowsrest; q++) {
+		delete[] restMatrix[q];
+	}
+	delete[] restMatrix;
+	*/
+
+	//this portion used to test file appending, which will be used in 00_reaxc_nonbonded_TEST.cpp
+
+
+	ofstream testFile;
+	testFile.open("testWrite.txt", std::ios_base::app);
+	testFile << "Data";
+	testFile << (1>0);
 	return 0;
+
 }
-
-
-
