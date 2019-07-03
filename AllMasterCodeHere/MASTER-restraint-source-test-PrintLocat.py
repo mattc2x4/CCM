@@ -51,8 +51,9 @@ R12CN = 1.5
 
 #time step
 timestep = 10000
-
-
+#current time step
+#this has to be a list to get around variable scope issues present in python2.7
+timeCurr = [0]
 
 
 
@@ -94,18 +95,16 @@ def main():
     coordinates = lmp1.gather_atoms("x",1,3)
     atomType = lmp1.gather_atoms("type",0,1)
     for i in range(2):
-        #gets global quantity ntimestep (current timestep) in lammps.  more extractable stuff can be viewed in library.cpp
-        currentStep = lmp1.extract_global("ntimestep",0)
         natoms = lmp1.get_natoms()
         coordinates = lmp1.gather_atoms("x",1,3)
         atomType = lmp1.gather_atoms("type",0,1)
-        coordFile.write("Time Step: " + str(currentStep) + "\n")
+        coordFile.write("Time Step: " + str(timeCurr) + "\n")
         for j in range(natoms):
             coordFile.write("Atom Index: "+ str(j) + " X: "+ str(coordinates[j]) + " Y: "+ str(coordinates[j+1]) + " Z: " + str(coordinates[j+2]))
             coordFile.write("\n")
-        search(natoms, atomType, coordinates,currentStep)
+        search(natoms, atomType, coordinates)
         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
- 
+        timeCurr[0] = timeCurr[0] + timestep
 
     coordFile.close()
     # add additional commands to lammps instance and run additional steps
@@ -134,11 +133,10 @@ def main():
 # supporting functions below
 #--------------------------#
 
-def search(natoms, atomType, c,currentStep): # c = coordinates
+def search(natoms, atomType, c): # c = coordinates
     # this function is used to search for atom pairs and to produce a
     # data file "rest-data.txt"
     # in nested for loops: i = Carbon, j = Oxygen, k = Nitrogen, m = Hydrogen; don't confuse address with id; address = id - 1
-    
     for i in range(0,natoms):
         nf = True # nf = 'not found'; we want to break the loops as soon as the carbon (i) is matched with a restraint set of atoms
         if atomType[i] == Ctype:
@@ -152,10 +150,10 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
                                     Olist.append(j+1)
                                     Nlist.append(k+1)
                                     Hlist.append(m+1)
-                                    newfile.write("\nATOMS FOUND: timestep: \nC\n ID: " + str(i+1) + " X: " + str(c[i*3]) + " Y: " + str(c[i*3+1]) + " Z: " + str(c[i*3+2]))
-                                    newfile.write("\nO\n ID: " + str(j+1) + " X: " + str(c[j*3]) + " Y: " + str(c[j*3+1]) + " Z: " + str(c[j*3+2]))
-                                    newfile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
-                                    newfile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
+                                    newfile.write("\nC\n ID: " + str(i+1) + "("+ str(coordinates[i*3]) + " , " str(coordinates[i*3+1])+ " , " str(coordinates[i*3+2])+ ")")
+                                    newfile.write("\nO\n ID: " + str(j+1) + "("+ str(coordinates[j*3]) + " , " str(coordinates[j*3+1])+ " , " str(coordinates[j*3+2])+ ")")
+                                    newfile.write("\nN\n ID: " + str(k+1) + "("+ str(coordinates[k*3]) + " , " str(coordinates[k*3+1])+ " , " str(coordinates[k*3+2])+ ")")
+                                    newfile.write("\nH\n ID: " + str(m+1) + "("+ str(coordinates[m*3]) + " , " str(coordinates[m*3+1])+ " , " str(coordinates[m*3+2])+ ")")
                                     nf = False
                                     break
     # end of nested loops
@@ -167,7 +165,7 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
         restfile.write("\n" + str(Clist[i]) + " " + str(Nlist[i]) + " " + str(R12CN) + " " + str(F1CN) + " " + str(F2CN) + " " + str(NCdist[0]) + " " + str(NCdist[1]))
     restfile.close()
     newfile.write(str(len(Clist)*3))
-    newfile.write("\n" + "timestep: " + str(currentStep))
+    newfile.write("\n" + "timestep: " + str(timeCurr[0]))
     for i in range(0,len(Clist)):
         newfile.write("\n" + str(Olist[i]) + " " + str(Clist[i]) + " " + str(R12OC) + " " + str(F1OC) + " " + str(F2OC) + " " + str(COdist[0]) + " " + str(COdist[1]))
         newfile.write("\n" + str(Olist[i]) + " " + str(Hlist[i]) + " " + str(R12OH) + " " + str(F1OH) + " " + str(F2OH) + " " + str(OHdist[0]) + " " + str(OHdist[1]))
