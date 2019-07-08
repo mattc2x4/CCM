@@ -16,8 +16,8 @@ remove second for loop in search responsible for appending to the rest-ALLData.t
 # GLOBAL VARIABLES
 
 # atom types
-Ctype = 1;
-Otype = 2;
+Ctype = 5;
+Otype = 6;
 Ntype = 3;
 Htype = 4;
 
@@ -31,23 +31,38 @@ COdist = [1.3 ,1.6]
 # will be populated by the search function.
 # The ith element of each list is associated with the ith element of each other list
 # example: Clist[3], Olist[3], Nlist[3], and Hlist[3] all coorespond to one restraint group
-Clist = []
-Olist = []
-Nlist = []
-Hlist = []
+#Clist = []
+#Olist = []
+#Nlist = []
+#Hlist = []
+#new array: 2d.  restID[0][i] will be associated with a group that is valid to recieve restraint force. written in order [C,O,N,H]
+#restOD[i][0] = C, restOD[i][1] = O, restOD[i][2] = N, restOD[i][3] = H
+restID = []
 
 # energy equation parameters (F1, F2)
-F1OC = 50
-F2OC = 0.5
-F1OH = 250
+# F1OC = 50
+# F2OC = 0.5
+# F1OH = 250
+# F2OH = 0.75
+# F1CN = 300
+# F2CN = 0.75
+
+F1OC = 75
+F2OC = 1.0
+F1OH = 200
 F2OH = 0.75
 F1CN = 300
 F2CN = 0.75
 
 # equilibrium distances
+# R12OC = 1.95
+# R12OH = 1.1
+# R12CN = 1.3
+
+# equilibrium distances
 R12OC = 1.95
-R12OH = 1.1
-R12CN = 1.5
+R12OH = 1.05
+R12CN = 1.4
 
 #time step
 timestep = 10000
@@ -93,20 +108,20 @@ def main():
     natoms = lmp1.get_natoms()
     coordinates = lmp1.gather_atoms("x",1,3)
     atomType = lmp1.gather_atoms("type",0,1)
-    for i in range(2):
+    for i in range(100):
         #gets global quantity ntimestep (current timestep) in lammps.  more extractable stuff can be viewed in library.cpp
         currentStep = lmp1.extract_global("ntimestep",0)
         natoms = lmp1.get_natoms()
         coordinates = lmp1.gather_atoms("x",1,3)
         atomType = lmp1.gather_atoms("type",0,1)
         coordFile.write("Time Step: " + str(currentStep) + "\n")
-        for j in range(natoms):
-            coordFile.write("Atom Index: "+ str(j) + " X: "+ str(coordinates[j]) + " Y: "+ str(coordinates[j+1]) + " Z: " + str(coordinates[j+2]))
-            coordFile.write("\n")
+        #for o in range(natoms):
+            #coordFile.write("Atom Index: "+ str(o) + " X: "+ str(coordinates[3*o]) + " Y: "+ str(coordinates[3*o+1]) + " Z: " + str(coordinates[3*o+2]))
+            #coordFile.write("\n")
         search(natoms, atomType, coordinates,currentStep)
         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
  
-
+    newfile.close()
     coordFile.close()
     # add additional commands to lammps instance and run additional steps
 
@@ -127,7 +142,7 @@ def main():
     if my_rank == 0:
         print "End of run"
     # End of python script
-    newfile.close()
+    
 
 
 
@@ -138,40 +153,74 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
     # this function is used to search for atom pairs and to produce a
     # data file "rest-data.txt"
     # in nested for loops: i = Carbon, j = Oxygen, k = Nitrogen, m = Hydrogen; don't confuse address with id; address = id - 1
-    
+    restID = []
     for i in range(0,natoms):
-        nf = True # nf = 'not found'; we want to break the loops as soon as the carbon (i) is matched with a restraint set of atoms
         if atomType[i] == Ctype:
             for j in range(0,natoms):
-                if ((atomType[j] == Otype) and (COdist[0] < distance(i,j,c)) and (COdist[1] > distance(i,j,c)) and ((j+1) not in Olist) and nf ):
+                if ((atomType[j] == Otype) and (COdist[0] < distance(i,j,c)) and (COdist[1] > distance(i,j,c))):
                     for k in range(0,natoms):
-                        if ( (atomType[k] == Ntype) and (NCdist[0] < distance(i,k,c)) and (NCdist[1] > distance(i,k,c)) and ((k+1) not in Nlist) and nf ):
+                        if ( (atomType[k] == Ntype) and (NCdist[0] < distance(i,k,c)) and (NCdist[1] > distance(i,k,c))):
                             for m in range(0,natoms):
-                                if ( (atomType[m]==Htype) and (OHdist[0] < distance(j,m,c)) and (OHdist[1] > distance(j,m,c)) and (NHdist[0] < distance(k,m,c)) and (NHdist[1] > distance(k,m,c)) and ((m+1) not in Hlist) ):
-                                    Clist.append(i+1) # +1 means address converted to id
-                                    Olist.append(j+1)
-                                    Nlist.append(k+1)
-                                    Hlist.append(m+1)
-                                    newfile.write("\nATOMS FOUND: timestep: \nC\n ID: " + str(i+1) + " X: " + str(c[i*3]) + " Y: " + str(c[i*3+1]) + " Z: " + str(c[i*3+2]))
+                                if ( (atomType[m]==Htype) and (OHdist[0] < distance(j,m,c)) and (OHdist[1] > distance(j,m,c)) and (NHdist[0] < distance(k,m,c)) and (NHdist[1] > distance(k,m,c))):
+                                    # +1 means address converted to id
+                                    #[[C,O,N,H],...]
+                                    restID.append([i+1,j+1,k+1,m+1])
+                                    coordFile.write("restID array: " + str(restID))
+                                    newfile.write("\nATOMS FOUND: timestep: " + str(currentStep) + " \nC\n ID: " + str(i+1) + " X: " + str(c[i*3]) + " Y: " + str(c[i*3+1]) + " Z: " + str(c[i*3+2]))
                                     newfile.write("\nO\n ID: " + str(j+1) + " X: " + str(c[j*3]) + " Y: " + str(c[j*3+1]) + " Z: " + str(c[j*3+2]))
                                     newfile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
                                     newfile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
-                                    nf = False
-                                    break
+                                    
     # end of nested loops
+    # this block checks to remove competing groups, and allows closest groups to pass. if C or N is same ID between 2 groups, they are competing
+    #no need to worry about index out of bounds when deleting, seems for loops are modified when you use the del command.
+    for i in range(0,len(restID)):
+        for j in range(0,len(restID)):
+            if (restID[i][0] == restID[j][0] and (i != j)):       #if groups share C
+                if (getPerim(restID[j],c) <= getPerim(restID[i]),c):     #if the Perimeter of the group at j is less than Perimeter distance of the group at i, delete group at i. else delete group at j
+                    coordFile.write("deleting group: " + str(restID[i]))
+                    coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])))
+                    coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])))
+                    del restID[i]       #deletes array at i
+                else:
+                    coordFile.write("deleting group: " + str(restID[j]))
+                    coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])))
+                    coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])))
+                    del restID[j]
+            if (restID[i][2] == restID[j][2] and (i != j)):       #if groups share N
+                 if (getPerim(restID[j],c) <= getPerim(restID[i]),c):     #if the Perimeter of the group at j is less than Perimeter distance of the group at i, delete group at i. else delete group at j
+                     coordFile.write("deleting group: " + str(restID[i]))
+                     coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])))
+                     coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])))
+                     del restID[i]       #deletes array at i
+                 else:
+                     coordFile.write("deleting group: " + str(restID[j]))
+                     coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])))
+                     coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])))
+                     del restID[j]
+    
+    coordFile.write("restID array (post removal): " + str(restID))
+
     restfile = open("rest-data.txt",'w')
-    restfile.write(str(len(Clist)*3))
-    for i in range(0,len(Clist)):
-        restfile.write("\n" + str(Olist[i]) + " " + str(Clist[i]) + " " + str(R12OC) + " " + str(F1OC) + " " + str(F2OC) + " " + str(COdist[0]) + " " + str(COdist[1]))
-        restfile.write("\n" + str(Olist[i]) + " " + str(Hlist[i]) + " " + str(R12OH) + " " + str(F1OH) + " " + str(F2OH) + " " + str(OHdist[0]) + " " + str(OHdist[1]))
-        restfile.write("\n" + str(Clist[i]) + " " + str(Nlist[i]) + " " + str(R12CN) + " " + str(F1CN) + " " + str(F2CN) + " " + str(NCdist[0]) + " " + str(NCdist[1]))
-    restfile.close()
-    newfile.write(str(len(Clist)*3))
+    restfile.write(str(len(restID)))        #number of groups we would apply force to TODO: must check for distances.
     newfile.write("\n" + "timestep: " + str(currentStep))
-    for i in range(0,len(Clist)):
-        newfile.write("\n" + str(Olist[i]) + " " + str(Clist[i]) + " " + str(R12OC) + " " + str(F1OC) + " " + str(F2OC) + " " + str(COdist[0]) + " " + str(COdist[1]))
-        newfile.write("\n" + str(Olist[i]) + " " + str(Hlist[i]) + " " + str(R12OH) + " " + str(F1OH) + " " + str(F2OH) + " " + str(OHdist[0]) + " " + str(OHdist[1]))
-        newfile.write("\n" + str(Clist[i]) + " " + str(Nlist[i]) + " " + str(R12CN) + " " + str(F1CN) + " " + str(F2CN) + " " + str(NCdist[0]) + " " + str(NCdist[1]))
+    newfile.write(str(len(restID)))
+    for i in range(0,len(restID)):
+        #O,C
+        #O,H
+        #C,N
+        restfile.write("\n" + str(restID[i][1]) + " " + str(restID[i][0]) + " " + str(R12OC) + " " + str(F1OC) + " " + str(F2OC) + " " + str(COdist[0]) + " " + str(COdist[1]))
+        restfile.write("\n" + str(restID[i][1]) + " " + str(restID[i][3]) + " " + str(R12OH) + " " + str(F1OH) + " " + str(F2OH) + " " + str(OHdist[0]) + " " + str(OHdist[1]))
+        restfile.write("\n" + str(restID[i][0]) + " " + str(restID[i][2]) + " " + str(R12CN) + " " + str(F1CN) + " " + str(F2CN) + " " + str(NCdist[0]) + " " + str(NCdist[1]))
+        newfile.write("\n" + str(restID[i][1]) + " " + str(restID[i][0]) + " " + str(R12OC) + " " + str(F1OC) + " " + str(F2OC) + " " + str(COdist[0]) + " " + str(COdist[1]))
+        newfile.write("\n" + str(restID[i][1]) + " " + str(restID[i][3]) + " " + str(R12OH) + " " + str(F1OH) + " " + str(F2OH) + " " + str(OHdist[0]) + " " + str(OHdist[1]))
+        newfile.write("\n" + str(restID[i][0]) + " " + str(restID[i][2]) + " " + str(R12CN) + " " + str(F1CN) + " " + str(F2CN) + " " + str(NCdist[0]) + " " + str(NCdist[1]))
+
+        
+    restfile.close()
+    
+    newfile.write("\n" + "timestep: " + str(currentStep))
+        
     return 0
 
 
@@ -188,5 +237,10 @@ def initialize():
     restfile.write("0")
     restfile.close()
     return 0
+
+#return the perimeter of the atoms. only input 1D array, atom group.
+def getPerim(atomGroup,coord):
+    return distance(atomGroup[0],atomGroup[1],coord) + distance(atomGroup[0],atomGroup[3],coord) + distance(atomGroup[1],atomGroup[2],coord) + distance(atomGroup[2],atomGroup[3],coord)
+
 
 main()

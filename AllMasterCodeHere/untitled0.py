@@ -8,5 +8,6 @@ i = 0
 j =0
 k = 0
 m = 0
-newfile = open("rest-ALLdata.txt",'a')
-newfile.write("\nC\n ID: " + str(i+1) + "X: "+ str(coordinates[i*3]) + " Y: " str(coordinates[i*3+1])+ " Z: " str(coordinates[i*3+2]))
+re = [[1,1,1],[1,2,3]]
+newfile = open("coord.txt",'a')
+newfile.write(str(re))
