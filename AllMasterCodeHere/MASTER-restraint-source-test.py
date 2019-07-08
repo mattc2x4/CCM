@@ -108,7 +108,7 @@ def main():
     natoms = lmp1.get_natoms()
     coordinates = lmp1.gather_atoms("x",1,3)
     atomType = lmp1.gather_atoms("type",0,1)
-    for i in range(100):
+    for i in range(2):
         #gets global quantity ntimestep (current timestep) in lammps.  more extractable stuff can be viewed in library.cpp
         currentStep = lmp1.extract_global("ntimestep",0)
         natoms = lmp1.get_natoms()
@@ -165,6 +165,7 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
                                     # +1 means address converted to id
                                     #[[C,O,N,H],...]
                                     restID.append([i+1,j+1,k+1,m+1])
+                                    coordFile.write("\ntimestep:" + str(currentStep) + "\n")
                                     coordFile.write("restID array: " + str(restID) + "\n")
                                     newfile.write("\nATOMS FOUND: timestep: " + str(currentStep) + " \nC\n ID: " + str(i+1) + " X: " + str(c[i*3]) + " Y: " + str(c[i*3+1]) + " Z: " + str(c[i*3+2]))
                                     newfile.write("\nO\n ID: " + str(j+1) + " X: " + str(c[j*3]) + " Y: " + str(c[j*3+1]) + " Z: " + str(c[j*3+2]))
@@ -174,31 +175,40 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
     # end of nested loops
     # this block checks to remove competing groups, and allows closest groups to pass. if C or N is same ID between 2 groups, they are competing
     #no need to worry about index out of bounds when deleting, seems for loops are modified when you use the del command.
-    for i in range(0,len(restID)):
-        for j in range(0,len(restID)):
-            if (restID[i][0] == restID[j][0] and (i != j)):       #if groups share C
-                if (getPerim(restID[j],c) <= getPerim(restID[i]),c):     #if the Perimeter of the group at j is less than Perimeter distance of the group at i, delete group at i. else delete group at j
-                    coordFile.write("deleting group: " + str(restID[i]) + "\n")
-                    coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])) + "\n")
-                    coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])) + "\n")
-                    del restID[i]       #deletes array at i
-                else:
-                    coordFile.write("deleting group: " + str(restID[j]) + "\n")
-                    coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])) + "\n")
-                    coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])) + "\n")
-                    del restID[j]
-            if (restID[i][2] == restID[j][2] and (i != j)):       #if groups share N
-                 if (getPerim(restID[j],c) <= getPerim(restID[i]),c):     #if the Perimeter of the group at j is less than Perimeter distance of the group at i, delete group at i. else delete group at j
-                     coordFile.write("deleting group: " + str(restID[i]) + "\n")
-                     coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])) + "\n")
-                     coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])) + "\n")
-                     del restID[i]       #deletes array at i
-                 else:
-                     coordFile.write("deleting group: " + str(restID[j]) + "\n")
-                     coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])) + "\n")
-                     coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])) + "\n")
-                     del restID[j]
-    
+#    delArray = []
+#    for i in range(0,len(restID)):
+#        for j in range(0,len(restID)):
+#            if (restID[i][0] == restID[j][0] and (i != j)):       #if groups share C
+#                if (getPerim(restID[j],c) <= getPerim(restID[i],c)):     #if the Perimeter of the group at j is less than Perimeter distance of the group at i, delete group at i. else delete group at j
+#                    coordFile.write("deleting group: " + str(restID[i]) + "\n")
+#                    coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i],c)) + "\n")
+#                    coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j],c)) + "\n")
+#                    delArray.append(i)       #adds i to delArray, which will be deleted after completion of loops.
+#                else:
+#                    coordFile.write("deleting group: " + str(restID[j]) + "\n")
+#                    coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i],c)) + "\n")
+#                    coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j],c)) + "\n")
+#                    delArray.append(j)
+#            if (restID[i][2] == restID[j][2] and (i != j)):       #if groups share N
+#                 if (getPerim(restID[j],c) <= getPerim(restID[i],c)):     #if the Perimeter of the group at j is less than Perimeter distance of the group at i, delete group at i. else delete group at j
+#                     coordFile.write("deleting group: " + str(restID[i]) + "\n")
+#                     coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i],c)) + "\n")
+#                     coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j],c)) + "\n")
+#                     delArray.append(i)       #deletes array at i
+#                 else:
+#                     coordFile.write("deleting group: " + str(restID[j]) + "\n")
+#                     coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i],c)) + "\n")
+#                     coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j],c)) + "\n")
+#                     delArray.append(j)
+    for i in range(0,len(restID)):      #you win python, this is such a stupid way to do this, and I hate you.  Calls findOptimal for the len, and if it doesn't return -1 it deletes at the index
+        delInd = findOptimal(restID, c)
+        if (delInd != -1):
+            coordFile.write("deleting: " + str(restID[delInd]) + "\n")
+            del restID[delInd]
+        else:
+            coordFile.write("none inoptimal\n")
+            break
+            
     coordFile.write("restID array (post removal): " + str(restID) + "\n")
 
     restfile = open("rest-data.txt",'w')
@@ -242,5 +252,31 @@ def initialize():
 def getPerim(atomGroup,coord):
     return distance(atomGroup[0],atomGroup[1],coord) + distance(atomGroup[0],atomGroup[3],coord) + distance(atomGroup[1],atomGroup[2],coord) + distance(atomGroup[2],atomGroup[3],coord)
 
-
+#python really got me here.  Basically call this for as many items in the list. I really should think of a better way, but python doodoo. returns an index that is inoptimal (to be deleted) or -1 ( if none are inoptimal)
+def findOptimal(restID, c):
+    for i in range(0,len(restID)):
+        for j in range(0,len(restID)):
+            if (restID[i][0] == restID[j][0] and (i != j)):       #if groups share C
+                if (getPerim(restID[j],c) <= getPerim(restID[i],c)):     #if the Perimeter of the group at j is less than Perimeter distance of the group at i, delete group at i. else delete group at j
+                    coordFile.write("Passing group: " + str(restID[i]) + "\n")
+                    coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i],c)) + "\n")
+                    coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j],c)) + "\n")
+                    return i       #adds i to delArray, which will be deleted after completion of loops.
+                else:
+                    coordFile.write("Passing group: " + str(restID[j]) + "\n")
+                    coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i],c)) + "\n")
+                    coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j],c)) + "\n")
+                    return j
+            if (restID[i][2] == restID[j][2] and (i != j)):       #if groups share N
+                 if (getPerim(restID[j],c) <= getPerim(restID[i],c)):     #if the Perimeter of the group at j is less than Perimeter distance of the group at i, delete group at i. else delete group at j
+                     coordFile.write("Passing group: " + str(restID[i]) + "\n")
+                     coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i],c)) + "\n")
+                     coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j],c)) + "\n")
+                     return i      #deletes array at i
+                 else:
+                     coordFile.write("Passing group: " + str(restID[j]) + "\n")
+                     coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i],c)) + "\n")
+                     coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j],c)) + "\n")
+                     return j
+    return -1
 main()
