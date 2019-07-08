@@ -165,7 +165,7 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
                                     # +1 means address converted to id
                                     #[[C,O,N,H],...]
                                     restID.append([i+1,j+1,k+1,m+1])
-                                    coordFile.write("restID array: " + str(restID))
+                                    coordFile.write("restID array: " + str(restID) + "\n")
                                     newfile.write("\nATOMS FOUND: timestep: " + str(currentStep) + " \nC\n ID: " + str(i+1) + " X: " + str(c[i*3]) + " Y: " + str(c[i*3+1]) + " Z: " + str(c[i*3+2]))
                                     newfile.write("\nO\n ID: " + str(j+1) + " X: " + str(c[j*3]) + " Y: " + str(c[j*3+1]) + " Z: " + str(c[j*3+2]))
                                     newfile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
@@ -178,28 +178,28 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
         for j in range(0,len(restID)):
             if (restID[i][0] == restID[j][0] and (i != j)):       #if groups share C
                 if (getPerim(restID[j],c) <= getPerim(restID[i]),c):     #if the Perimeter of the group at j is less than Perimeter distance of the group at i, delete group at i. else delete group at j
-                    coordFile.write("deleting group: " + str(restID[i]))
-                    coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])))
-                    coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])))
+                    coordFile.write("deleting group: " + str(restID[i]) + "\n")
+                    coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])) + "\n")
+                    coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])) + "\n")
                     del restID[i]       #deletes array at i
                 else:
-                    coordFile.write("deleting group: " + str(restID[j]))
-                    coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])))
-                    coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])))
+                    coordFile.write("deleting group: " + str(restID[j]) + "\n")
+                    coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])) + "\n")
+                    coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])) + "\n")
                     del restID[j]
             if (restID[i][2] == restID[j][2] and (i != j)):       #if groups share N
                  if (getPerim(restID[j],c) <= getPerim(restID[i]),c):     #if the Perimeter of the group at j is less than Perimeter distance of the group at i, delete group at i. else delete group at j
-                     coordFile.write("deleting group: " + str(restID[i]))
-                     coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])))
-                     coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])))
+                     coordFile.write("deleting group: " + str(restID[i]) + "\n")
+                     coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])) + "\n")
+                     coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])) + "\n")
                      del restID[i]       #deletes array at i
                  else:
-                     coordFile.write("deleting group: " + str(restID[j]))
-                     coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])))
-                     coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])))
+                     coordFile.write("deleting group: " + str(restID[j]) + "\n")
+                     coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i])) + "\n")
+                     coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j])) + "\n")
                      del restID[j]
     
-    coordFile.write("restID array (post removal): " + str(restID))
+    coordFile.write("restID array (post removal): " + str(restID) + "\n")
 
     restfile = open("rest-data.txt",'w')
     restfile.write(str(len(restID)))        #number of groups we would apply force to TODO: must check for distances.
