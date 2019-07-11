@@ -63,6 +63,14 @@ F2CN = 0.75
 R12OC = 1.95
 R12OH = 1.05
 R12CN = 1.4
+#distances [min,max] within which we consider the bond to be made. +/- 15% of above equilibrium distances
+CObondDist = [1.6575 , 2.2425]
+OHbondDist = [.8925 , 1.2075]
+CNbondDist = [1.19 , 1.61]
+
+#where we put the formed bonds found in findSuccess
+bondID = []
+
 
 #time step
 timestep = 10000
@@ -109,6 +117,8 @@ def main():
     coordinates = lmp1.gather_atoms("x",1,3)
     atomType = lmp1.gather_atoms("type",0,1)
     for i in range(2):
+#        if (coordFile.closed):
+#            break;
         #gets global quantity ntimestep (current timestep) in lammps.  more extractable stuff can be viewed in library.cpp
         currentStep = lmp1.extract_global("ntimestep",0)
         natoms = lmp1.get_natoms()
@@ -154,6 +164,7 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
     # data file "rest-data.txt"
     # in nested for loops: i = Carbon, j = Oxygen, k = Nitrogen, m = Hydrogen; don't confuse address with id; address = id - 1
     restID = []
+    coordFile.write("in Search\n")
     for i in range(0,natoms):
         if atomType[i] == Ctype:
             for j in range(0,natoms):
@@ -212,9 +223,9 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
     coordFile.write("restID array (post removal): " + str(restID) + "\n")
 
     restfile = open("rest-data.txt",'w')
-    restfile.write(str(len(restID)))        #number of groups we would apply force to TODO: must check for distances.
+    restfile.write(str(len(restID) * 3))        #number of groups we would apply force to TODO: must check for distances.
     newfile.write("\n" + "timestep: " + str(currentStep))
-    newfile.write(str(len(restID)))
+    newfile.write(str(len(restID) * 3))
     for i in range(0,len(restID)):
         #O,C
         #O,H
@@ -230,6 +241,10 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
     restfile.close()
     
     newfile.write("\n" + "timestep: " + str(currentStep))
+#    if (str(len(restID)) == 0):
+#        newfile.close()
+#        coordFile.close()
+
         
     return 0
 
@@ -252,7 +267,7 @@ def initialize():
 def getPerim(atomGroup,coord):
     return distance(atomGroup[0],atomGroup[1],coord) + distance(atomGroup[0],atomGroup[3],coord) + distance(atomGroup[1],atomGroup[2],coord) + distance(atomGroup[2],atomGroup[3],coord)
 
-#python really got me here.  Basically call this for as many items in the list. I really should think of a better way, but python doodoo. returns an index that is inoptimal (to be deleted) or -1 ( if none are inoptimal)
+#python really got me here.  Basically call this for as many items in the list. I really should think of a better way, but python. returns an index that is inoptimal (to be deleted) or -1 ( if none are inoptimal)
 def findOptimal(restID, c):
     for i in range(0,len(restID)):
         for j in range(0,len(restID)):
@@ -279,4 +294,31 @@ def findOptimal(restID, c):
                      coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j],c)) + "\n")
                      return j
     return -1
+
+#This function will search for successfully created bonds
+def findSuccessBonds(natoms, atomType, c,currentStep):
+    bondFile = open("bond.txt",'a')
+    for i in range(0,natoms):
+        if atomType[i] == Ctype:
+            for j in range(0,natoms):
+                if ((atomType[j] == Otype) and (CObondDist[0] < distance(i,j,c)) and (CObondDist[1] > distance(i,j,c))):
+                    for k in range(0,natoms):
+                        if ( (atomType[k] == Ntype) and (CNbondDist[0] < distance(i,k,c)) and (CNbondDist[1] > distance(i,k,c))):
+                            for m in range(0,natoms):
+                                if ( (atomType[m]==Htype) and (OHbondDist[0] < distance(j,m,c)) and (OHbondDist[1] > distance(j,m,c)) ):
+                                    #TO-DO: dind NH ideal dist          and (NHdist[0] < distance(k,m,c)) and (NHdist[1] > distance(k,m,c))
+                                    # +1 means address converted to id
+                                    #[[C,O,N,H],...]
+                                    bondID.append([i+1,j+1,k+1,m+1])
+                                    bondFile.write("\ntimestep:" + str(currentStep) + "\n")
+                                    bondFile.write("bondID array: " + str(bondID) + "\n")
+                                    bondFile.write("\nATOMS FOUND: timestep: " + str(currentStep) + " \nC\n ID: " + str(i+1) + " X: " + str(c[i*3]) + " Y: " + str(c[i*3+1]) + " Z: " + str(c[i*3+2]))
+                                    bondFile.write("\nO\n ID: " + str(j+1) + " X: " + str(c[j*3]) + " Y: " + str(c[j*3+1]) + " Z: " + str(c[j*3+2]))
+                                    bondFile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
+                                    bondFile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
+
+
+                            
+                                    
+    bondFile.close()
 main()
