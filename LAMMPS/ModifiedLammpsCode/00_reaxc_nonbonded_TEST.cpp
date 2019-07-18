@@ -73,34 +73,58 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
   /*-------------------------------- read in restraint data --------------------------------*/
   double F1rest, F2rest, R12rest, Erest, dErestdr;
   int id1rest, id2rest;
-  int printLimit = 0;
   double Rijrest, dxrest, dyrest, dzrest, Rminrest, Rmaxrest, dErestx, dEresty, dErestz;
+  int currStep = 0;
+  int pastStep= 0;
+  std::fstream doublefile;		//this is to prevent double application of force. really silly we have to use a file but my scope!
+  //basically records past step to file, and if it equals current step we prevent it from running.
+  //uses currStep, pastStep. see readfile.cpp for justification.
   int nRowsrest;
   double** restMatrix; // pointer to pointer (dynamic memory allocation); is deallocated at end of file
-  std::ofstream testFile;		//this is where we initialize our test file, which we will be writing to
+  std::ifstream testFile;		//this is where we initialize our test file, which we will be writing to
   testFile.open("nonbonded_TEST.txt", std::ios_base::app);
+
+  //this fixes the issue where everytime we call run("10000") in python it runs this file twice.
   // read in the restraint parameter data file
   std::ifstream restfile ("rest-data.txt");
-  if (restfile.is_open()) {
-	  restfile >> nRowsrest;
-	  // allocate
-	  restMatrix = new double*[nRowsrest];
-	  for (i = 0; i < nRowsrest; i++) {
-		  restMatrix[i] = new double[7];
-	  }
-	  // fill 2d array with infile parameters
-	  for (i = 0; i < nRowsrest; i++) {
-		  for (j = 0; j < 7; j++) {
-			  restfile >> restMatrix[i][j];
-		  }
-	  }
-	  restfile.close();
-  }
-  else {
-    std::cout << "Unable to open restraint parameter file" << std::endl;
-	restMatrix = new double*[1]; // wouldn't be used in this case anyway?
+  if (data->step % 10000 == 0){			//only read file every 10000 steps, kind of silly to do it every timestep but who knows if it matters.
+	  if (restfile.is_open()) {
+	  	  restfile >> nRowsrest;
+
+	  	  // allocate
+	  	  restMatrix = new double*[nRowsrest];
+	  	  for (i = 0; i < nRowsrest; i++) {
+	  		  restMatrix[i] = new double[7];
+	  	  }
+	  	  // fill 2d array with infile parameters
+	  	  for (i = 0; i < nRowsrest; i++) {
+	  		  for (j = 0; j < 7; j++) {
+	  			  restfile >> restMatrix[i][j];
+	  		  }
+	  	  }
+	  	  if (data->step % 1000 == 0){
+	  		//testFile<<"nRowsrest: "<<nRowsrest<<"\n";
+	  		for (i = 0; i < nRowsrest; i++) {
+	  	  		for (j = 0; j < 7; j++) {
+	  	  			testFile << restMatrix[i][j] << "  ";
+	  	  		}
+	  	  		testFile << "\n";
+	  	  	}
+	  	  	   }
+
+	  	  restfile.close();
+	    }
+	    else {
+	      std::cout << "Unable to open restraint parameter file" << std::endl;
+	  	restMatrix = new double*[1]; // wouldn't be used in this case anyway?
+	    }
   }
   /*-------------------------------- end of restraint read --------------------------------*/
+  currStep = data->step;
+  doublefile.open("doublefile.txt",std::ios::in);
+  doublefile >> pastStep;
+  doublefile.close();
+  if(currStep != pastStep){
   	  for (int restk = 0; restk < nRowsrest; restk++) {
   		  id1rest = restMatrix[restk][0];
   		  id2rest = restMatrix[restk][1];
@@ -126,7 +150,10 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
   						  //testFile<< "dzrest: "<<system->my_atoms[i].x[2]<<" - "<<system->my_atoms[j].x[2]<<" = "<<dzrest<<"\n";
   						  //testFile<< "Rijrest: "<<Rijrest<<"\n";
   						  //testFile<<"is Rijrest < Rmaxrest, and Rijrest > Rminrest "<<((Rijrest < Rmaxrest) and (Rijrest > Rminrest));
-  						  if ((Rijrest < Rmaxrest) and (Rijrest > Rminrest)) {
+						  /*if ((((Rijrest < Rmaxrest) and (Rijrest > Rminrest)) != true) && data->step % 1000 == 0) {
+							  testFile << id1rest << " and " << id2rest << " NOT Within restDistance: "<<Rijrest;
+						  }*/
+  						  //if ((Rijrest < Rmaxrest) and (Rijrest > Rminrest)) {
   							  Erest = F1rest*(1.0 - exp(-1.0*F2rest*(Rijrest - R12rest)*(Rijrest - R12rest) ));
   							  dErestdr = 2.0*F1rest*F2rest*(Rijrest - R12rest)*exp(-1.0*F2rest*(Rijrest - R12rest)*(Rijrest - R12rest));
   							  dErestx = dErestdr*dxrest/Rijrest;
@@ -134,10 +161,11 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
   							  dErestz = dErestdr*dzrest/Rijrest;
   							  //this is to print every 20 timesteps 
 							  //data->step is from pair_reax_c.cpp which reads from update->ntimestep
-  							  if (data->step % 20 == 0){
-  								testFile<<"\nTimestep: "<<data->step<<"\n";
-  								testFile<<"\nid1rest\natom ID: "<<system->my_atoms[i].orig_id<<" X: "<<system->my_atoms[i].x[0]<<" Y: "<<system->my_atoms[i].x[1]<<" Z: "<<system->my_atoms[i].x[2];
-  								testFile<<"\nid2rest\natom ID: "<<system->my_atoms[j].orig_id<<" X: "<<system->my_atoms[j].x[0]<<" Y: "<<system->my_atoms[j].x[1]<<" Z: "<<system->my_atoms[j].x[2];
+  							  if (data->step % 1000 == 0){
+  								testFile<<"Timestep: "<<data->step<<"\n";
+  								testFile<<"id1rest\natom ID: "<<system->my_atoms[i].orig_id<<" X: "<<system->my_atoms[i].x[0]<<" Y: "<<system->my_atoms[i].x[1]<<" Z: "<<system->my_atoms[i].x[2]<<"\n";
+  								testFile<<"id2rest\natom ID: "<<system->my_atoms[j].orig_id<<" X: "<<system->my_atoms[j].x[0]<<" Y: "<<system->my_atoms[j].x[1]<<" Z: "<<system->my_atoms[j].x[2]<<"\n";
+  								testFile<< "distance: "<<Rijrest<<"\n\n";
   							  }
   							  //testFile<< "Erest: "<<Erest<<"\n";
   							  //testFile<< "dErestdr: "<<dErestdr<<"\n";
@@ -150,14 +178,19 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
   							  rvec_Add( workspace->f[i], temp);
   							  rvec_ScaledAdd( workspace->f[j], -1.0 ,temp);
   							  //testFile<<"dErestx, dEresty, dErestz added to workspace->f["<< i<<"]";
-  						  }
+  						  //}
   					  }
   				  }
   			  }
   		  }
   	  }
-  	  testFile.close();
-  	  /* End of added code for restraint force */
+  	doublefile.open("doublefile.txt",std::ios::out);
+    doublefile << currStep ;
+  	doublefile.close();
+  	testFile.close();
+
+  }
+  /* End of added code for restraint force */
   for( i = 0; i < natoms; ++i ) {
     if (system->my_atoms[i].type < 0) continue;
     start_i = Start_Index(i, far_nbrs);
@@ -532,6 +565,4 @@ void LR_vdW_Coulomb( reax_system *system, storage *workspace,
 
   lr->CEclmb = C_ele * ( dTap -  Tap * r_ij / dr3gamij_1 ) / dr3gamij_3;
 }
-
-
 
