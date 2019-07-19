@@ -15,6 +15,9 @@ remove second for loop in search responsible for appending to the rest-ALLData.t
 # from mpi4py import MPI
 # GLOBAL VARIABLES
 
+
+
+
 # atom types
 Ctype = 5;
 Otype = 6;
@@ -46,6 +49,8 @@ restID = []
 # F2OH = 0.75
 # F1CN = 300
 # F2CN = 0.75
+
+boxdim = []
 
 F1OC = 75
 F2OC = 1.0
@@ -113,6 +118,10 @@ def main():
     lmp1.file(lammpsScript)
     initialize()
     lmp1.command("run 0")
+    #todo, grab box dimensions for periodic boundaries.
+    boxdim[0] = lmp1.extract_global("boxxlo",0) - lmp1.extract_global("boxxhi",0)
+    boxdim[1] = lmp1.extract_global("boxylo",0) - lmp1.extract_global("boxyhi",0)
+    boxdim[2] = lmp1.extract_global("boxzlo",0) - lmp1.extract_global("boxzhi",0)
 
     # Get lammps data as python variables
     natoms = lmp1.get_natoms()
@@ -225,9 +234,13 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
 
 def distance(address1, address2,coordinates):
     # this function is used to calculate the distance between 2 atoms.  Input is the address (not id!) of the two atoms
+    #boxdim has x, y, z dimensions of box as array, 0 = x, 1 = y, 2 = z
     dx = coordinates[3*address1] - coordinates[3*address2]
     dy = coordinates[3*address1+1] - coordinates[3*address2+1]
     dz = coordinates[3*address1+2] - coordinates[3*address2+2]
+    dx = dx-round(dx/boxdim[0]) * boxdim[0]
+    dy = dy - round(dx/boxdim[1]) * boxdim[1]
+    dz = dz - round(dx/boxdim[1]) * boxdim[1]
     dr = (dx*dx + dy*dy + dz*dz)**(0.5)
     return dr
 
@@ -238,8 +251,9 @@ def initialize():
     return 0
 
 #return the perimeter of the atoms. only input 1D array, atom group.
+#distance only accepts ID's, so gotta subtract one
 def getPerim(atomGroup,coord):
-    return distance(atomGroup[0],atomGroup[1],coord) + distance(atomGroup[0],atomGroup[3],coord) + distance(atomGroup[1],atomGroup[2],coord) + distance(atomGroup[2],atomGroup[3],coord)
+    return distance(atomGroup[0]-1,atomGroup[1]-1,coord) + distance(atomGroup[0]-1,atomGroup[3]-1,coord) + distance(atomGroup[1]-1,atomGroup[2]-1,coord) + distance(atomGroup[2]-1,atomGroup[3]-1,coord)
 
 #python really got me here.  Basically call this for as many items in the list. I really should think of a better way, but python. returns an index that is inoptimal (to be deleted) or -1 ( if none are inoptimal)
 def findOptimal(restID, c):
