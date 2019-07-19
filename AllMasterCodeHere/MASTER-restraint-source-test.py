@@ -122,7 +122,7 @@ def main():
     boxdim[0] = lmp1.extract_global("boxxlo",0) - lmp1.extract_global("boxxhi",0)
     boxdim[1] = lmp1.extract_global("boxylo",0) - lmp1.extract_global("boxyhi",0)
     boxdim[2] = lmp1.extract_global("boxzlo",0) - lmp1.extract_global("boxzhi",0)
-
+    coordFile.write("xdim: " + boxdim[0] + "\nydim: " + boxdim[1] + "\nzdim: " + boxdim[2] + "\n\n")
     # Get lammps data as python variables
     natoms = lmp1.get_natoms()
     coordinates = lmp1.gather_atoms("x",1,3)
@@ -176,7 +176,6 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
     # data file "rest-data.txt"
     # in nested for loops: i = Carbon, j = Oxygen, k = Nitrogen, m = Hydrogen; don't confuse address with id; address = id - 1
     restID = []
-    coordFile.write("in Search\n")
     for i in range(0,natoms):
         if atomType[i] == Ctype:
             for j in range(0,natoms):
@@ -238,9 +237,9 @@ def distance(address1, address2,coordinates):
     dx = coordinates[3*address1] - coordinates[3*address2]
     dy = coordinates[3*address1+1] - coordinates[3*address2+1]
     dz = coordinates[3*address1+2] - coordinates[3*address2+2]
-    dx = dx-round(dx/boxdim[0]) * boxdim[0]
+    dx = dx - round(dx/boxdim[0]) * boxdim[0]
     dy = dy - round(dx/boxdim[1]) * boxdim[1]
-    dz = dz - round(dx/boxdim[1]) * boxdim[1]
+    dz = dz - round(dx/boxdim[2]) * boxdim[2]
     dr = (dx*dx + dy*dy + dz*dz)**(0.5)
     return dr
 
