@@ -44,16 +44,20 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
   e_vdW = 0;
   e_lg = de_lg = 0.0;
   /*-------------------------------- read in restraint data --------------------------------*/
-  double F1rest, F2rest, R12rest, Erest, dErestdr;
-  int id1rest, id2rest;
-  int printLimit = 0;
-  double Rijrest, dxrest, dyrest, dzrest, Rminrest, Rmaxrest, dErestx, dEresty, dErestz;
-  bool id1Found = false;
-  bool id2Found = false;
-  int ind_id1;
-  int ind_id2;
-  int nRowsrest;
-  double** restMatrix; // pointer to pointer (dynamic memory allocation); is deallocated at end of file
+	double F1rest, F2rest, R12rest, Erest, dErestdr;
+	int id1rest, id2rest;
+	int printLimit = 0;
+	double Rijrest, dxrest, dyrest, dzrest, Rminrest, Rmaxrest, dErestx,
+			dEresty, dErestz;
+	bool id1Found = false;
+	bool id2Found = false;
+	int ind_id1 = -1;
+	int ind_id2 = -1;
+	int XboxL = 25;
+	int YboxL = 25;
+	int ZboxL = 25;
+	int nRowsrest;
+	double** restMatrix; // pointer to pointer (dynamic memory allocation); is deallocated at end of file
   std::ofstream testFile;		//this is where we initialize our test file, which we will be writing to
   testFile.open("nonbonded_TEST.txt", std::ios_base::app);
   // read in the restraint parameter data file
@@ -71,6 +75,16 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
 			  restfile >> restMatrix[i][j];
 		  }
 	  }
+		if (data->step % 1000 == 0) {
+			//testFile<<"nRowsrest: "<<nRowsrest<<"\n";
+			for (i = 0; i < nRowsrest; i++) {
+				for (j = 0; j < 7; j++) {
+					testFile << restMatrix[i][j] << "  ";
+				}
+				testFile << "\n";
+			}
+		}
+
 	  restfile.close();
   }
   else {
@@ -99,31 +113,37 @@ void vdW_Coulomb_Energy( reax_system *system, control_params *control,
 			}
 			if (id1Found && id2Found) {	//when this is true we calculate and apply the restForce.
 				dxrest = system->my_atoms[i].x[0] - system->my_atoms[j].x[0];
+				dxrest = dxrest - round(dxrest / XboxL) * XboxL;
 				dyrest = system->my_atoms[i].x[1] - system->my_atoms[j].x[1];
+				dyrest = dyrest - round(dyrest / YboxL) * YboxL;
 				dzrest = system->my_atoms[i].x[2] - system->my_atoms[j].x[2];
+				dzrest = dzrest - round(dzrest / ZboxL) * ZboxL;
 				Rijrest = sqrt(dxrest * dxrest + dyrest * dyrest + dzrest * dzrest);
-				if ((Rijrest < Rmaxrest) and (Rijrest > Rminrest)) {		//atoms are within specified distance.
-				  	Erest = F1rest*(1.0 - exp(-1.0*F2rest*(Rijrest - R12rest)*(Rijrest - R12rest) ));
-				  	dErestdr = 2.0*F1rest*F2rest*(Rijrest - R12rest)*exp(-1.0*F2rest*(Rijrest - R12rest)*(Rijrest - R12rest));
-				  	dErestx = dErestdr*dxrest/Rijrest;
-				  	dEresty = dErestdr*dyrest/Rijrest;
-				  	dErestz = dErestdr*dzrest/Rijrest;
+				Rijrest = sqrt(dxrest * dxrest + dyrest * dyrest + dzrest * dzrest);
+				Erest = F1rest* (1.0 - exp(-1.0 * F2rest * (Rijrest - R12rest) * (Rijrest - R12rest)));
+				dErestdr = 2.0 * F1rest * F2rest * (Rijrest - R12rest) * exp(-1.0 * F2rest * (Rijrest - R12rest)* (Rijrest - R12rest));
+				dErestx = dErestdr * dxrest / Rijrest;
+				dEresty = dErestdr * dyrest / Rijrest;
+				dErestz = dErestdr * dzrest / Rijrest;
+				//this is to print every 20 timesteps
+				//data->step is from pair_reax_c.cpp which reads from update->ntimestep
+				if (data->step % 1000 == 0) {
+					testFile << "Timestep: " << data->step << "\n";
+					testFile << "id1rest\natom ID: " << system->my_atoms[i].orig_id << " X: " << system->my_atoms[i].x[0] << " Y: " << system->my_atoms[i].x[1] << " Z: " << system->my_atoms[i].x[2] << "\n";
+					testFile << "id2rest\natom ID: " << system->my_atoms[j].orig_id << " X: " << system->my_atoms[j].x[0] << " Y: " << system->my_atoms[j].x[1] << " Z: " << system->my_atoms[j].x[2] << "\n";
+					testFile << "distance: " << Rijrest << "\n\n";
+				}
 
-				  	if (data->step % 1000 == 0){		//this is to print every 1000 timesteps.. data->step is from pair_reax_c.cpp which reads from update->ntimestep. this should run and indicate that we are adding restForce.
-				  		testFile<<"\n\nTimestep: "<<data->step<<"\n";
-				  		testFile<<"id1rest\natom ID: "<<system->my_atoms[i].orig_id<<" X: "<<system->my_atoms[i].x[0]<<" Y: "<<system->my_atoms[i].x[1]<<" Z: "<<system->my_atoms[i].x[2];
-				  		testFile<<"\nid2rest\natom ID: "<<system->my_atoms[j].orig_id<<" X: "<<system->my_atoms[j].x[0]<<" Y: "<<system->my_atoms[j].x[1]<<" Z: "<<system->my_atoms[j].x[2];
-				  	}
-				  	//testFile<< "Erest: "<<Erest<<"\n";
-				  	//testFile<< "dErestdr: "<<dErestdr<<"\n";
-				  	//testFile<< "dErestx: "<<dErestx<<"\n";
-				  	//testFile<< "dEresty: "<<dEresty<<"\n";
-				  	//testFile<< "dErestz: "<<dErestz<<"\n";
-				  	temp[0] = dErestx;
-				  	temp[1] = dEresty;
-				  	temp[2] = dErestz;
-				  	rvec_Add( workspace->f[i], temp);
-				  	rvec_ScaledAdd( workspace->f[j], -1.0 ,temp);
+				temp[0] = dErestx;
+				temp[1] = dEresty;
+				temp[2] = dErestz;
+				rvec_Add(workspace->f[i], temp);
+				rvec_ScaledAdd(workspace->f[j], -1.0, temp);
+				ind_id1 = -1;
+				ind_id2 = -1;
+				id1Found = false;
+				id2Found = false;
+
 			}
 		}
 		i++;
