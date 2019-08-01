@@ -50,7 +50,7 @@ restID = []
 # F1CN = 300
 # F2CN = 0.75
 
-boxdim = []
+boxdim = [0] *3
 
 F1OC = 75
 F2OC = 1.0
@@ -119,10 +119,9 @@ def main():
     initialize()
     lmp1.command("run 0")
     #todo, grab box dimensions for periodic boundaries.
-    boxdim[0] = lmp1.extract_global("boxxlo",0) - lmp1.extract_global("boxxhi",0)
-    boxdim[1] = lmp1.extract_global("boxylo",0) - lmp1.extract_global("boxyhi",0)
-    boxdim[2] = lmp1.extract_global("boxzlo",0) - lmp1.extract_global("boxzhi",0)
-    coordFile.write("xdim: " + boxdim[0] + "\nydim: " + boxdim[1] + "\nzdim: " + boxdim[2] + "\n\n")
+     #- lmp1.extract_global("boxzlo",0)
+    #boxlo,boxhi,xy,yz,xz,periodicity,box_change = lmp1.extract_box()
+    #coordFile.write("xdim: " + str(boxdim[0]) + "\nydim: " + str(boxdim[1]) + "\nzdim: " + str(boxdim[2]) + "\n\n")
     # Get lammps data as python variables
     natoms = lmp1.get_natoms()
     coordinates = lmp1.gather_atoms("x",1,3)
@@ -131,6 +130,9 @@ def main():
         #gets global quantity ntimestep (current timestep) in lammps.  more extractable stuff can be viewed in library.cpp
         currentStep = lmp1.extract_global("ntimestep",0)
         natoms = lmp1.get_natoms()
+		boxdim[0] = lmp1.extract_global("boxxhi",1)
+		boxdim[1] = lmp1.extract_global("boxyhi",1)
+		boxdim[2] = lmp1.extract_global("boxzhi",1)
         coordinates = lmp1.gather_atoms("x",1,3)
         atomType = lmp1.gather_atoms("type",0,1)
         coordFile.write("Time Step: " + str(currentStep) + "\n")
@@ -234,12 +236,13 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
 def distance(address1, address2,coordinates):
     # this function is used to calculate the distance between 2 atoms.  Input is the address (not id!) of the two atoms
     #boxdim has x, y, z dimensions of box as array, 0 = x, 1 = y, 2 = z
+    #see reac.f "dista2" function
     dx = coordinates[3*address1] - coordinates[3*address2]
     dy = coordinates[3*address1+1] - coordinates[3*address2+1]
     dz = coordinates[3*address1+2] - coordinates[3*address2+2]
     dx = dx - round(dx/boxdim[0]) * boxdim[0]
-    dy = dy - round(dx/boxdim[1]) * boxdim[1]
-    dz = dz - round(dx/boxdim[2]) * boxdim[2]
+    dy = dy - round(dy/boxdim[1]) * boxdim[1]
+    dz = dz - round(dz/boxdim[2]) * boxdim[2]
     dr = (dx*dx + dy*dy + dz*dz)**(0.5)
     return dr
 
