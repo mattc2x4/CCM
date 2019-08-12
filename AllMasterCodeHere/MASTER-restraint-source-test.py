@@ -22,7 +22,7 @@ remove second for loop in search responsible for appending to the rest-ALLData.t
 Ctype = 5;
 Otype = 6;
 Ntype = 3;
-Htype = 4;
+Htype = 7;
 
 # min and max pair distances for restraint criteria
 OHdist = [1.5, 8.0]
@@ -130,9 +130,9 @@ def main():
         #gets global quantity ntimestep (current timestep) in lammps.  more extractable stuff can be viewed in library.cpp
         currentStep = lmp1.extract_global("ntimestep",0)
         natoms = lmp1.get_natoms()
-		boxdim[0] = lmp1.extract_global("boxxhi",1)
-		boxdim[1] = lmp1.extract_global("boxyhi",1)
-		boxdim[2] = lmp1.extract_global("boxzhi",1)
+        boxdim[0] = lmp1.extract_global("boxxhi",1)
+        boxdim[1] = lmp1.extract_global("boxyhi",1)
+        boxdim[2] = lmp1.extract_global("boxzhi",1)
         coordinates = lmp1.gather_atoms("x",1,3)
         atomType = lmp1.gather_atoms("type",0,1)
         coordFile.write("Time Step: " + str(currentStep) + "\n")
