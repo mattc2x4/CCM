@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jul  3 08:52:49 2019
+Created on Mon Aug 12 09:15:43 2019
 
 @author: mattcohe
 """
-i = 0
-j =0
-k = 0
-m = 0
-re = [[1,1,1],[1,2,3]]
-newfile = open("coord.txt",'a')
-newfile.write(str(re))
+
+def main():
+    print(4)
+    #f = open("bonds.txt", "r")
+    #currline = f.readline
+    #print(currline)
+    
