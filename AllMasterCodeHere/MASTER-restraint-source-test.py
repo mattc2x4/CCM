@@ -30,14 +30,11 @@ NHdist = [0.9, 1.2]
 NCdist = [3.0 ,8.0]
 COdist = [1.3 ,1.6]
 
-# id lists of atoms which participate in restraint.  Initially empty but
-# will be populated by the search function.
-# The ith element of each list is associated with the ith element of each other list
-# example: Clist[3], Olist[3], Nlist[3], and Hlist[3] all coorespond to one restraint group
-#Clist = []
-#Olist = []
-#Nlist = []
-#Hlist = []
+# for bond finding portion
+Clist = []
+Olist = []
+Nlist = []
+Hlist = []
 #new array: 2d.  restID[0][i] will be associated with a group that is valid to recieve restraint force. written in order [C,O,N,H]
 #restOD[i][0] = C, restOD[i][1] = O, restOD[i][2] = N, restOD[i][3] = H
 restID = []
@@ -59,6 +56,9 @@ F2OH = 0.75
 F1CN = 300
 F2CN = 0.75
 
+F1CO = '?'
+F2CO = '?'
+
 # equilibrium distances
 # R12OC = 1.95
 # R12OH = 1.1
@@ -68,6 +68,9 @@ F2CN = 0.75
 R12OC = 1.95
 R12OH = 1.05
 R12CN = 1.4
+
+R12CH = '?'      # this is a placeholder for values determined later, in an effort to insure H doesn't break from active C.
+
 #distances [min,max] within which we consider the bond to be made. +/- 15% of above equilibrium distances
 CObondDist = [2.3 , 2.9]
 OHbondDist = [.85 , 1.2]
@@ -308,6 +311,7 @@ def findSuccessBonds(natoms, atomType, c,currentStep):
                                         bondFile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
                                         bondFile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
                                     
+
 
                             
                                     
