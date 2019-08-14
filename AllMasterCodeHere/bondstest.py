@@ -15,6 +15,8 @@ Olist = []
 Hlist = []
 Nlist = []
 bondList = []
+CNlist = []
+OHlist = []
 bondnum = 0
 start = False
 
@@ -51,7 +53,7 @@ for line in lineFile:       #loops through each line of the file
                 bondnum = wordList[3]       #gets number of bond this atom has.
                 for i in range(bondnum):
                     if (wordList[3 + i] in Nlist):
-                        bondList.append([wordList[0],-1,wordList[3+i],-1,currStep])        #adds C and N to an array as a group.  -1 are placeholders for O and H, and should be in the form [C,O,N,H,step] to follow previous group notation.
+                        CNlist.append([wordList[0],wordList[3+i],currStep])        #adds C and N to an array as a group.  
         elif (wordList[0] in Olist):
             for group in bondList:
                 if (wordList[0] in bondList[group]):        #and we haven't already stored this N
@@ -61,7 +63,7 @@ for line in lineFile:       #loops through each line of the file
                 bondnum = wordList[3]
                 for i in range(bondnum):
                     if (wordList[3 + i] in Hlist):
-                        bondList.append(-1,[wordList[0],-1,wordList[3+i], currStep])
+                        OHlist.append([wordList[0],wordList[3+i], currStep])
             
 start = False           
                         
@@ -96,13 +98,28 @@ def findPairs(lineFile,Clist,Olist,Nlist,Hlist):
             getNH(Nlist,Hlist,wordList)
         elif(currStep > 0):
             break
+badReac = False;           
+def mergeCONH():
+    flag = True
+    for CN in CNlist:
+        for CO in COlist:
+            if (CN[0] == CO[0]):
+                for NH in NHlist:
+                    if (CN[1] == NH[0]):
+                        
+                
+Clist = [71,121,120,72]
+
+Olist = [122,74,121,73]
+
+Nlist = [9,8,89,90
+        
             
-            
-def findCH(Clist, CHlist):
-    #this uses special H identifier to help keep the H on the active C by applying restraint force. We still need to think of the parameters.
-    for line in lineFile:       #loops through each line of the file
-        wordList = line.split()     #splits the line into a list of words dilineated by any space
-        if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
-            currStep = wordList[2] 
-        elif (currStep == 0):
-            
+#def findCH(Clist, CHlist):
+#    #this uses special H identifier to help keep the H on the active C by applying restraint force. We still need to think of the parameters.
+#    for line in lineFile:       #loops through each line of the file
+#        wordList = line.split()     #splits the line into a list of words dilineated by any space
+#        if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
+#            currStep = wordList[2] 
+#        elif (currStep == 0):
+#            CHlist.append([wordList[0],wordList[3 + i]])

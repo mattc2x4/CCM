@@ -69,7 +69,6 @@ R12OC = 1.95
 R12OH = 1.05
 R12CN = 1.4
 
-R12CH = '?'      # this is a placeholder for values determined later, in an effort to insure H doesn't break from active C.
 
 #distances [min,max] within which we consider the bond to be made. +/- 15% of above equilibrium distances
 CObondDist = [2.3 , 2.9]
