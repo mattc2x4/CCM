@@ -19,7 +19,12 @@ CNlist = []
 OHlist = []
 bondnum = 0
 start = False
-
+currStep = -1
+Ctype = 5
+Otype = 6
+Htype = 7
+Ntype = 3
+currentStep = 0
 stored = False
 for i in range(natoms):     #gets all carbon locations.  won't be ID till end. 
     if (atomType[i] == Ctype):
@@ -39,7 +44,7 @@ for line in lineFile:       #loops through each line of the file
     stored = False
     wordList = line.split()     #splits the line into a list of words dilineated by any space
     if (wordList[0] == '#' and wordList[1] == 'Timestep' and int(wordList[2]) == currentStep):      # the hashtag starts the header area
-        int(currStep) = wordList[2]      #grabs and stores timestep
+        currStep = int(wordList[2])      #grabs and stores timestep
         start = True
     if (wordList[0] != '#' and start):      #into the body of the file
         if (currStep == 0):
@@ -101,19 +106,30 @@ def findPairs(lineFile,Clist,Olist,Nlist,Hlist):
 badReac = False;           
 def mergeCONH():
     flag = True
-    for CN in CNlist:
-        for CO in COlist:
-            if (CN[0] == CO[0]):
-                for NH in NHlist:
-                    if (CN[1] == NH[0]):
-                        
+    for CN in CNlist:       #get CN
+        for CO in COlist:       #find Carbon initial bond
+            if (CN[0] == CO[0]):        #Match C between CN and CO
+                for NH in NHlist:       #looking for H linked with N
+                    if (CN[1] == NH[0]): #Match N between CN and NH
+                        for OH in OHlist:                            
+                            if (NH[1] == OH[1] and CO[1] == OH[0]):     #Match H between NH and OH, and O between OH and CO
+                                bondList.append([CN[0], OH[0],CN[1],OH[1]])     # to get here, C same between CN and CO, N same between NH and CN, H same between NH and OH, and O same between OH and CO.
+                            
+                
                 
 Clist = [71,121,120,72]
 
 Olist = [122,74,121,73]
 
-Nlist = [9,8,89,90
+Nlist = [9,8]
         
+def main():
+    NH = [[8,19],[8,20]]
+    CO = [[1,2],[3,4]]
+    CN = [[1,8],[3,8]]
+    OH = [[2,19],[4,20]]
+    mergeCOHN()
+main()           
             
 #def findCH(Clist, CHlist):
 #    #this uses special H identifier to help keep the H on the active C by applying restraint force. We still need to think of the parameters.

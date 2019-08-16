@@ -129,6 +129,9 @@ def main():
     coordinates = lmp1.gather_atoms("x",1,3)
     atomType = lmp1.gather_atoms("type",0,1)
     for i in range(100):
+        newfile = open("rest-ALLdata.txt",'a')
+        coordFile = open("coord.txt",'a')
+        bondFile = open("pyBond.txt",'a')
         #gets global quantity ntimestep (current timestep) in lammps.  more extractable stuff can be viewed in library.cpp
         currentStep = lmp1.extract_global("ntimestep",0)
         natoms = lmp1.get_natoms()
@@ -144,10 +147,11 @@ def main():
         search(natoms, atomType, coordinates,currentStep)
         findSuccessBonds(natoms, atomType, coordinates,currentStep)
         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
+        newfile.close()
+        coordFile.close()
+        bondFile.close()
  
-    newfile.close()
-    coordFile.close()
-    bondFile.close()
+    
 
     # add additional commands to lammps instance and run additional steps
 
