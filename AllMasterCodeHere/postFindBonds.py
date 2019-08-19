@@ -22,6 +22,7 @@ Ctype = 5
 Otype = 6
 Htype = 7
 Ntype = 3
+pastStep = -1
 
 def main():
     print('in main')
@@ -31,7 +32,7 @@ def main():
     print("Hlist: " + str(Hlist))
     print("Nlist: " + str(Nlist))
     #stores all values by index not by ID
-    f = open("testbonds.txt", "r")
+    f = open("bonds.txt", "r")
     lineFile = f.readlines()
     getPairs(lineFile,Clist,Olist,Nlist,Hlist)
     print("NHList: " + str(NHlist))
@@ -50,13 +51,17 @@ def getCO (Clist,Olist,wordList):
     #this should pull CO pairs from timestep 0.
     #to be referenced and called in getBonds to link NC to OH once bonds formed.
     #mods COlist  (stored [C,O] by index)
+    add = True
     if (int(wordList[0]) in Clist):
+        for CO in COlist:
+            if (int(wordList[0]) in CO):
+                add = False
       #  print("found C " + str(wordList))
         bondnum = int(wordList[2])       #gets number of bond this atom has.
         for i in range(bondnum):
          #   print("bondnum = " + str(bondnum))
-            if (int(wordList[3 + i]) in Olist):
-                COlist.append([wordList[0],wordList[3 + i]])
+            if (int(wordList[3 + i]) in Olist and add):
+                COlist.append([int(wordList[0]),int(wordList[3 + i])])
                 #print("CO added: " + str([wordList[0],wordList[3 + i]]))
 
         
@@ -65,16 +70,23 @@ def getCO (Clist,Olist,wordList):
 def getNH(Nlist,Hlist,wordList):
     #print('in getNH on ' + str(wordList))
     #this should pull NH pairs from timestep 0
-    if (int(wordList[0]) in Nlist):
+    add = True
+    
+    if (int(wordList[0]) in Nlist and add):
         #print("found N " + str(wordList))
         bondnum = int(wordList[2])       #gets number of bond this atom has.
         for i in range(bondnum):
             if (int(wordList[3 + i]) in Hlist):
-                NHlist.append([wordList[0],wordList[3 + i]])
-                #print("NH added: " + str([wordList[0],wordList[3 + i]]))
+                    for NH in NHlist:
+                        if (int(wordList[3+i]) in NH):
+                            add = False
+                    if (add):
+                        NHlist.append([int(wordList[0]),int(wordList[3 + i])])
+                                #print("NH added: " + str([wordList[0],wordList[3 + i]]))
                 
 def getPairs(lineFile,Clist,Olist,Nlist,Hlist):
     #calls getCO and getNH on every line in the first timestep
+    currStep = -1
     print("in findPairs")
     for line in lineFile:       #loops through each line of the file
         wordList = line.split()
@@ -138,7 +150,6 @@ def getFormed(lineFile):
         if (len(wordList) > 2):
             if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
                 currStep = int(wordList[2])      #grabs and stores timestep
-                print('current step: ' + wordList[2] )
             elif (wordList[0] != '#'):
                 stored = False
                 #this should go through entire file and get all formed OH and NC bonds. 
@@ -148,25 +159,27 @@ def getFormed(lineFile):
                 if (wordList[0] != '#'):      #into the body of the file
                     if (currStep != 0):
                         if (int(wordList[0]) in Clist):      #THis section checks for N-C bonds, if first is C
-                            for group in bondList:
-                                if (int(wordList[0]) in bondList[group]):        #and we haven't already stored this C
+                            for group in CNlist:
+                                if (int(wordList[0]) in group):        #and we haven't already stored this C
                                     stored = True
                                     break
                             if (not stored):
                                 bondnum = int(wordList[2])       #gets number of bond this atom has.
                                 for i in range(bondnum):
                                     if (int(wordList[3 + i]) in Nlist):
-                                        CNlist.append([wordList[0],wordList[3+i],currStep])        #adds C and N to an array as a group.  
+                                        CNlist.append([int(wordList[0]),int(wordList[3+i]),currStep])        #adds C and N to an array as a group.  
+
                         elif (int(wordList[0]) in Olist):
-                            for group in bondList:
-                                if (int(wordList[0]) in bondList[group]):        #and we haven't already stored this N
+                            for group in OHlist:
+                                if (int(wordList[0]) in group):        #and we haven't already stored this O
                                     stored = True
                                     break
                             if (not stored):
                                 bondnum = int(wordList[2])
                                 for i in range(bondnum):
                                     if (int(wordList[3 + i]) in Hlist):
-                                        OHlist.append([wordList[0],wordList[3+i], currStep])
+                                        OHlist.append([int(wordList[0]),int(wordList[3+i]), currStep])
+
     
 def getMostCurrentTimeStep(bondFile):
     f = open("testbonds.txt", "r")

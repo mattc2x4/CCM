@@ -1,0 +1,143 @@
+# input script for SWNT simulation in LAMMPS
+#-------10--------20--------30--------40--------50--------60--------70--------80
+
+# Variables
+variable input index 4Epon-2DETDA-Packmol-H.model
+
+# INITIALIZATION
+units		    real
+boundary            p p p
+atom_style          full
+
+# ATOM DEFINITION
+
+read_data           ${input}
+
+# FORCE FIELD
+
+pair_style          reax/c NULL
+pair_coeff          * * ffield.reax C O N H C O H
+
+# SETTINGS
+
+neighbor	    1.0 bin
+neigh_modify	    delay 1
+
+
+#----------------GROUPS-----------------------------------------
+
+
+# -------------------------------------------------------------------------
+variable peng equal pe
+variable keng equal ke
+variable temp equal temp
+variable Pr equal press
+variable istep equal step
+variable density equal density
+
+variable lx equal lx
+variable ly equal ly
+variable lz equal lz
+variable lx0 equal ${lx}
+variable ly0 equal ${ly}
+variable lz0 equal ${lz}
+
+# fix b all print 10000 "${istep},${lx},${ly},${lz}" file Box-Boundaries.txt screen no
+
+variable Cx equal x[1]
+variable Cy equal y[1]
+variable Cz equal z[1]
+
+variable Ox equal x[3]
+variable Oy equal y[3]
+variable Oz equal z[3]
+
+variable Nx equal x[8]
+variable Ny equal y[8]
+variable Nz equal z[8]
+
+variable dCO equal sqrt((v_Cx-v_Ox)^2+(v_Cy-v_Oy)^2+(v_Cz-v_Oz)^2)
+variable dCN equal sqrt((v_Cx-v_Nx)^2+(v_Cy-v_Ny)^2+(v_Cz-v_Nz)^2)
+
+
+# fix distOutput all print 1000 "${istep} ${dCO} ${dCN}" file distances.txt screen no
+
+
+compute PEatomic all pe/atom
+variable PEatomic atom c_PEatomic
+
+variable Cenergy equal v_PEatomic[1]
+variable Oenergy equal v_PEatomic[3]
+variable Nenergy equal v_PEatomic[8]
+
+# fix EnergyOutput all print 1000 "${istep} ${Cenergy} ${Oenergy} ${Nenergy}" file energies.txt screen no
+
+
+# ------- COUNTS ---------------------------------------------------------
+variable Nall equal count(all)
+
+# ------- calculate force and displacement -------------------------------
+compute 55 all property/atom fx
+compute 56 all reduce sum c_55
+variable xforce_right equal c_56
+
+# --------------------- Global Stress Components --------------------------
+
+variable p1 equal "-pxx/10000"
+variable p2 equal "-pyy/10000"
+variable p3 equal "-pzz/10000"
+variable p4 equal "-pxy/10000"
+variable p5 equal "-pxz/10000"
+variable p6 equal "-pyz/10000"
+variable hs equal "(v_p1+v_p2+v_p3)/3"            # Hydrostatic stress
+
+# fix strecom1 all print 1000 "${istep},${p1},${p2},${p3},${p4},${p5},${p6},${hs}" file stress-components-all.txt screen no
+
+# ------------ Per Atom Properties ----------------------
+
+# compute vecX all stress/atom NULL virial
+
+# ------------------------------------------------------------------------------
+thermo_style custom step cpu temp pe vol pzz
+thermo 10000
+
+timestep 0.25            # fs
+
+fix 30 all print 1000 "${istep},${peng},${keng},${temp},${Pr},${density}" file silica-ETP-data.txt screen no
+# fix 3030 all print 10 "${istep},${peng}" file pe-10.txt screen no
+
+
+fix 46 all qeq/reax 1 0.0 10.0 1.0e-6 reax/c
+# fix wref all wall/reflect xlo 0.0 xhi 30.0 ylo 0.0 yhi 30.0 zlo -15.0 zhi 15.0 units box
+
+# ----------------------output for VMD-----------------------------------------------
+
+dump 		1 all custom 50000 dump.coord id mol type q x y z
+dump_modify    1 sort 1
+
+dump 		4 all xyz 50000 dump.xyz
+dump_modify 	4 element C O N H C O H
+
+dump        5 all custom 50000 dump-unwrapped id mol type q xu yu zu
+dump_modify 5 sort 1
+
+fix 41 all reax/c/species 1 1 1000 species-water.out element C O N H C O H
+fix 42 all reax/c/bonds 10000 bonds.txt
+
+#------------MINIMIZE ENERGY ---------------------------------------------------
+# minimize 0.0 1.0e-8 1000 100000
+
+# min_style sd 
+# minimize 0 1.0e-6 100000 100000 
+# min_style cg
+# minimize 0 1.0e-6 100000 100000
+
+#------------ NVT RELAXATION @ 300 K -------------------------------------------
+# fix 61 all npt temp 300.0 300.0 100.0 x 1.0 1.0 1000.0 y 1.0 1.0 1000.0 z 1.0 1.0 1000.0 couple none
+fix 61 all nve
+fix 62 all temp/berendsen 300.0 300.0 10.0
+# fix 62 all momentum 500 linear 1 1 1
+# run 100000
+# unfix 61
+
+print "Run is initialized!"

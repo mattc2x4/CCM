@@ -1,0 +1,23 @@
+Adding dependency `intel/2018u3` to your environment
+Adding dependency `libfabric/1.6.1` to your environment
+Adding dependency `openmpi/3.1.2:intel` to your environment
+Adding dependency `python/2.7.15` to your environment
+Adding package `lammps/20Jun2019:restraint,ccm_gillespi` to your environment
+-- Open MPI job setup complete (on r00n21):
+--  mpi job startup      = /opt/shared/openmpi/3.1.2-intel/bin/mpirun
+--  nhosts               = 1
+--  nproc                = 1
+--  nproc-per-node       = 1
+--  cpus-per-proc        = 1
+
+-- Open MPI environment flags:
+--  OMPI_MCA_btl_base_exclude=tcp
+--  OMPI_MCA_rmaps_base_display_map=true
+--  OMPI_MCA_orte_hetero_nodes=true
+--  OMPI_MCA_hwloc_base_binding_policy=core
+--  OMPI_MCA_rmaps_base_mapping_policy=core
+
+
+-- Using PYTHON executable: /opt/shared/python/2.7.15/bin/python
+
+Run complete
