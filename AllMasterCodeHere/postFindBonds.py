@@ -4,6 +4,14 @@ Created on Thu Aug 15 15:39:59 2019
 
 @author: mattcohe
 """
+"""
+
+Call Heirarchy:
+    #todo
+
+"""
+
+
 NHlist = []
 COlist = []
 restID = []
@@ -24,12 +32,13 @@ Htype = 7
 Ntype = 3
 pastStep = -1
 H2Olist = []
-H1list = []
+H1list = [] #non active H, for checking for H2O
 H1type = 4
 Hcount = 0
 C1type = 1
 C1list = [] #every nonactive carbon
 realC1list = [] # the non active carbons bonded to active O's
+greatestStep = [-1]
 
 
 def main():
@@ -45,7 +54,7 @@ def main():
     print("Olist: " + str(Olist) + "len " + str(len(Olist)))
     print("Hlist: " + str(Hlist))
     print("Nlist: " + str(Nlist))
-    print("C1list: " + str(C1list))
+    #print("C1list: " + str(C1list))
     print("NHList: " + str(NHlist))
     print("COlist: " + str(COlist))
     print("realC1list: " + str(realC1list) + "len " + str(len(realC1list)))
@@ -54,9 +63,8 @@ def main():
     print('OHlist: ' + str(OHlist))
     print('CNlist: ' + str(CNlist))
     mergeCONH()
-    print("BondList: " + str(bondList))
-    print(len(bondList))
-    print("H2Olist: " + str(H2Olist))
+    print("BondList: " + str(bondList)+ "len: " + str(len(bondList)))
+    print("H2Olist: " + str(H2Olist) + "len: " + str(len(H2Olist)))
     
     
 
@@ -76,6 +84,7 @@ def getCO (Clist,Olist,wordList):
     #this should pull CO pairs from timestep 0.
     #to be referenced and called in getBonds to link NC to OH once bonds formed.
     #mods COlist  (stored [C,O] by index)
+    #also adds all non active C in epoxide to C1list.
     add = True
     if (int(wordList[0]) in Clist):
         for CO in COlist:
@@ -88,7 +97,6 @@ def getCO (Clist,Olist,wordList):
             if (int(wordList[3 + i]) in Olist and add):
                 COlist.append([int(wordList[0]),int(wordList[3 + i])])
                 #print("CO added: " + str([wordList[0],wordList[3 + i]]))
-            print(wordList)
             if((int(wordList[3+i]) in C1list) and (int(wordList[3+i]) not in realC1list)):
                 realC1list.append(int(wordList[3+i]))
 
@@ -217,9 +225,7 @@ def getFormed(lineFile):
                                         OHlist.append([int(wordList[0]),int(wordList[3+i]), currStep])
 
     
-def getMostCurrentTimeStep(bondFile):
-    f = open("testbonds.txt", "r")
-    lineFile = f.readlines()
+def getMostCurrentTimeStep(lineFile):
     currStep = -1
     greatestStep = 0
     for line in lineFile:       #loops through each line of the file
@@ -230,22 +236,20 @@ def getMostCurrentTimeStep(bondFile):
                 if (greatestStep < currStep):
                     greatestStep = currStep
     return greatestStep
+    
 
 def getH2O(lineFile):
     #records the O in H2O.  this O should be removed from the bondlist in mergeCONH
+    latestStep = getMostCurrentTimeStep(lineFile)
     for line in lineFile:       #loops through each line of the file
         wordList = line.split()     #splits the line into a list of words dilineated by any space
         Hcount = 0
-        #print(wordList)
         if (len(wordList) > 2):
             if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
                 currStep = int(wordList[2])      #grabs and stores timestep
-            elif (wordList[0] != '#'):
-                stored = False
-                #this should go through entire file and get all formed OH and NC bonds. 
-                   
+            elif (wordList[0] != '#' and latestStep == currStep):
+                stored = False                  
                 if (int(wordList[0]) in Olist):
-                    #print("found O" + wordList[0]) 
                     for group in H2Olist:
                         if (int(wordList[0]) in group):        #and we haven't already stored this O
                             stored = True
@@ -256,10 +260,7 @@ def getH2O(lineFile):
                         for i in range(bondnum):
                             if (int(wordList[3 + i]) in Hlist or int(wordList[3 + i]) in H1list):
                                 Hcount+=1
-                                #print("found H" + wordList[3 + i])
-                                #print(str(Hcount)+"H")
                                 if (Hcount>1):
-                                    #print(str(Hcount)+"H")
                                     H2Olist.append([int(wordList[0]), currStep])
 
 
