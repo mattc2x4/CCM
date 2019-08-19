@@ -88,7 +88,8 @@ def getCO (Clist,Olist,wordList):
             if (int(wordList[3 + i]) in Olist and add):
                 COlist.append([int(wordList[0]),int(wordList[3 + i])])
                 #print("CO added: " + str([wordList[0],wordList[3 + i]]))
-            if((int(wordList[3+1]) in C1list) and (int(wordList[3+1]) not in realC1list)):
+            print(wordList)
+            if((int(wordList[3+i]) in C1list) and (int(wordList[3+i]) not in realC1list)):
                 realC1list.append(int(wordList[3+i]))
 
         
