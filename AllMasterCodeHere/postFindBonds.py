@@ -23,10 +23,11 @@ Otype = 6
 Htype = 7
 Ntype = 3
 pastStep = -1
+H2Olist = []
 
 def main():
     print('in main')
-    getCONH_fromMODEL('4Epon-2DETDA-Packmol-H.txt')
+    getCONH_fromMODEL('8Epon-4DETDA-H.txt')
     print("Clist: " + str(Clist))
     print("Olist: " + str(Olist))
     print("Hlist: " + str(Hlist))
@@ -38,10 +39,13 @@ def main():
     print("NHList: " + str(NHlist))
     print("COlist: " + str(COlist))
     getFormed(lineFile)
+    getH2O(lineFile)
     print('OHlist: ' + str(OHlist))
     print('CNlist: ' + str(CNlist))
     mergeCONH()
     print("BondList: " + str(bondList))
+    print(len(bondList))
+    print(H2Olist)
 
     
 
@@ -194,4 +198,34 @@ def getMostCurrentTimeStep(bondFile):
                 if (greatestStep < currStep):
                     greatestStep = currStep
     return greatestStep
+
+def getH2O(lineFile):
+    #records the O in H2O.  this O should be removed from the bondlist in mergeCONH
+    for line in lineFile:       #loops through each line of the file
+        wordList = line.split()     #splits the line into a list of words dilineated by any space
+        Hcount = 0
+        #print(wordList)
+        if (len(wordList) > 2):
+            if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
+                currStep = int(wordList[2])      #grabs and stores timestep
+            elif (wordList[0] != '#'):
+                stored = False
+                #this should go through entire file and get all formed OH and NC bonds. 
+                   
+                if (int(wordList[0]) in Olist):
+                    print("found O" + wordList[0]) 
+                    for group in H2Olist:
+                        if (int(wordList[0]) in group):        #and we haven't already stored this O
+                            stored = True
+                            break
+                    if (not stored):
+                        bondnum = int(wordList[2])
+                        for i in range(bondnum):
+                            if (int(wordList[3 + i]) in Hlist):
+                                Hcount+=1
+                                print(" found H" )
+                                if (Hcount >= 2):
+                                    H2Olist.append([int(wordList[0]), currStep])
+                                    print("-----------------------------found H2O--------------------------")
+
 main()
