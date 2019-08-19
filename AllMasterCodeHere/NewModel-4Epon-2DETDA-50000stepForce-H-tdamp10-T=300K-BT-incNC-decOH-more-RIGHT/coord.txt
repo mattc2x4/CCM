@@ -1,0 +1,442 @@
+Time Step: 0
+
+timestep:0
+restID array: [[72, 73, 38, 46]]
+
+timestep:0
+restID array: [[72, 73, 38, 46], [72, 73, 38, 47]]
+
+timestep:0
+restID array: [[72, 73, 38, 46], [72, 73, 38, 47], [135, 136, 38, 46]]
+
+timestep:0
+restID array: [[72, 73, 38, 46], [72, 73, 38, 47], [135, 136, 38, 46], [135, 136, 38, 47]]
+
+timestep:0
+restID array: [[72, 73, 38, 46], [72, 73, 38, 47], [135, 136, 38, 46], [135, 136, 38, 47], [135, 136, 39, 50]]
+
+timestep:0
+restID array: [[72, 73, 38, 46], [72, 73, 38, 47], [135, 136, 38, 46], [135, 136, 38, 47], [135, 136, 39, 50], [135, 136, 39, 51]]
+
+timestep:0
+restID array: [[72, 73, 38, 46], [72, 73, 38, 47], [135, 136, 38, 46], [135, 136, 38, 47], [135, 136, 39, 50], [135, 136, 39, 51], [170, 171, 7, 15]]
+
+timestep:0
+restID array: [[72, 73, 38, 46], [72, 73, 38, 47], [135, 136, 38, 46], [135, 136, 38, 47], [135, 136, 39, 50], [135, 136, 39, 51], [170, 171, 7, 15], [170, 171, 7, 16]]
+
+timestep:0
+restID array: [[72, 73, 38, 46], [72, 73, 38, 47], [135, 136, 38, 46], [135, 136, 38, 47], [135, 136, 39, 50], [135, 136, 39, 51], [170, 171, 7, 15], [170, 171, 7, 16], [170, 171, 8, 19]]
+
+timestep:0
+restID array: [[72, 73, 38, 46], [72, 73, 38, 47], [135, 136, 38, 46], [135, 136, 38, 47], [135, 136, 39, 50], [135, 136, 39, 51], [170, 171, 7, 15], [170, 171, 7, 16], [170, 171, 8, 19], [170, 171, 8, 20]]
+
+timestep:0
+restID array: [[72, 73, 38, 46], [72, 73, 38, 47], [135, 136, 38, 46], [135, 136, 38, 47], [135, 136, 39, 50], [135, 136, 39, 51], [170, 171, 7, 15], [170, 171, 7, 16], [170, 171, 8, 19], [170, 171, 8, 20], [233, 234, 7, 15]]
+Passing group: [72, 73, 38, 47]
+[72, 73, 38, 46]Perim = 14.1061108723
+[72, 73, 38, 47]Perim = 15.7165137605
+deleting: [72, 73, 38, 47]
+Passing group: [135, 136, 38, 46]
+[72, 73, 38, 46]Perim = 14.1061108723
+[135, 136, 38, 46]Perim = 15.2993378429
+deleting: [135, 136, 38, 46]
+Passing group: [72, 73, 38, 46]
+[72, 73, 38, 46]Perim = 14.1061108723
+[135, 136, 38, 47]Perim = 13.5837529744
+deleting: [72, 73, 38, 46]
+Passing group: [135, 136, 39, 50]
+[135, 136, 38, 47]Perim = 13.5837529744
+[135, 136, 39, 50]Perim = 13.9900730185
+deleting: [135, 136, 39, 50]
+Passing group: [135, 136, 39, 51]
+[135, 136, 38, 47]Perim = 13.5837529744
+[135, 136, 39, 51]Perim = 15.7030000679
+deleting: [135, 136, 39, 51]
+Passing group: [170, 171, 7, 15]
+[170, 171, 7, 15]Perim = 15.7240059794
+[170, 171, 7, 16]Perim = 14.4158447915
+deleting: [170, 171, 7, 15]
+Passing group: [170, 171, 8, 19]
+[170, 171, 7, 16]Perim = 14.4158447915
+[170, 171, 8, 19]Perim = 15.9883378006
+deleting: [170, 171, 8, 19]
+Passing group: [170, 171, 8, 20]
+[170, 171, 7, 16]Perim = 14.4158447915
+[170, 171, 8, 20]Perim = 17.3512246768
+deleting: [170, 171, 8, 20]
+Passing group: [233, 234, 7, 15]
+[170, 171, 7, 16]Perim = 14.4158447915
+[233, 234, 7, 15]Perim = 16.7137630011
+deleting: [233, 234, 7, 15]
+none inoptimal
+restID array (post removal): [[135, 136, 38, 47], [170, 171, 7, 16]]
+Time Step: 50000
+
+timestep:50000
+restID array: [[86, 87, 8, 19]]
+
+timestep:50000
+restID array: [[86, 87, 8, 19], [86, 87, 8, 20]]
+
+timestep:50000
+restID array: [[86, 87, 8, 19], [86, 87, 8, 20], [121, 122, 39, 50]]
+
+timestep:50000
+restID array: [[86, 87, 8, 19], [86, 87, 8, 20], [121, 122, 39, 50], [121, 122, 39, 51]]
+
+timestep:50000
+restID array: [[86, 87, 8, 19], [86, 87, 8, 20], [121, 122, 39, 50], [121, 122, 39, 51], [170, 171, 8, 19]]
+
+timestep:50000
+restID array: [[86, 87, 8, 19], [86, 87, 8, 20], [121, 122, 39, 50], [121, 122, 39, 51], [170, 171, 8, 19], [170, 171, 8, 20]]
+
+timestep:50000
+restID array: [[86, 87, 8, 19], [86, 87, 8, 20], [121, 122, 39, 50], [121, 122, 39, 51], [170, 171, 8, 19], [170, 171, 8, 20], [184, 185, 7, 15]]
+
+timestep:50000
+restID array: [[86, 87, 8, 19], [86, 87, 8, 20], [121, 122, 39, 50], [121, 122, 39, 51], [170, 171, 8, 19], [170, 171, 8, 20], [184, 185, 7, 15], [184, 185, 7, 16]]
+
+timestep:50000
+restID array: [[86, 87, 8, 19], [86, 87, 8, 20], [121, 122, 39, 50], [121, 122, 39, 51], [170, 171, 8, 19], [170, 171, 8, 20], [184, 185, 7, 15], [184, 185, 7, 16], [184, 185, 8, 19]]
+
+timestep:50000
+restID array: [[86, 87, 8, 19], [86, 87, 8, 20], [121, 122, 39, 50], [121, 122, 39, 51], [170, 171, 8, 19], [170, 171, 8, 20], [184, 185, 7, 15], [184, 185, 7, 16], [184, 185, 8, 19], [184, 185, 8, 20]]
+
+timestep:50000
+restID array: [[86, 87, 8, 19], [86, 87, 8, 20], [121, 122, 39, 50], [121, 122, 39, 51], [170, 171, 8, 19], [170, 171, 8, 20], [184, 185, 7, 15], [184, 185, 7, 16], [184, 185, 8, 19], [184, 185, 8, 20], [184, 185, 38, 46]]
+
+timestep:50000
+restID array: [[86, 87, 8, 19], [86, 87, 8, 20], [121, 122, 39, 50], [121, 122, 39, 51], [170, 171, 8, 19], [170, 171, 8, 20], [184, 185, 7, 15], [184, 185, 7, 16], [184, 185, 8, 19], [184, 185, 8, 20], [184, 185, 38, 46], [219, 220, 39, 51]]
+Passing group: [86, 87, 8, 19]
+[86, 87, 8, 19]Perim = 15.6048624292
+[86, 87, 8, 20]Perim = 14.28214362
+deleting: [86, 87, 8, 19]
+Passing group: [86, 87, 8, 20]
+[86, 87, 8, 20]Perim = 14.28214362
+[170, 171, 8, 19]Perim = 9.0164260463
+deleting: [86, 87, 8, 20]
+Passing group: [121, 122, 39, 50]
+[121, 122, 39, 50]Perim = 13.5971953186
+[121, 122, 39, 51]Perim = 12.7141294536
+deleting: [121, 122, 39, 50]
+Passing group: [219, 220, 39, 51]
+[121, 122, 39, 51]Perim = 12.7141294536
+[219, 220, 39, 51]Perim = 18.3585599755
+deleting: [219, 220, 39, 51]
+Passing group: [170, 171, 8, 19]
+[170, 171, 8, 19]Perim = 9.0164260463
+[170, 171, 8, 20]Perim = 7.99044789623
+deleting: [170, 171, 8, 19]
+Passing group: [184, 185, 8, 19]
+[170, 171, 8, 20]Perim = 7.99044789623
+[184, 185, 8, 19]Perim = 16.0856910026
+deleting: [184, 185, 8, 19]
+Passing group: [184, 185, 8, 20]
+[170, 171, 8, 20]Perim = 7.99044789623
+[184, 185, 8, 20]Perim = 16.9209092134
+deleting: [184, 185, 8, 20]
+Passing group: [184, 185, 7, 15]
+[184, 185, 7, 15]Perim = 14.160025925
+[184, 185, 7, 16]Perim = 13.2055541875
+deleting: [184, 185, 7, 15]
+Passing group: [184, 185, 7, 16]
+[184, 185, 7, 16]Perim = 13.2055541875
+[184, 185, 38, 46]Perim = 8.34303310966
+deleting: [184, 185, 7, 16]
+none inoptimal
+restID array (post removal): [[121, 122, 39, 51], [170, 171, 8, 20], [184, 185, 38, 46]]
+Time Step: 100000
+
+timestep:100000
+restID array: [[233, 234, 39, 50]]
+
+timestep:100000
+restID array: [[233, 234, 39, 50], [233, 234, 39, 51]]
+Passing group: [233, 234, 39, 50]
+[233, 234, 39, 50]Perim = 17.1741981219
+[233, 234, 39, 51]Perim = 16.4903221705
+deleting: [233, 234, 39, 50]
+none inoptimal
+restID array (post removal): [[233, 234, 39, 51]]
+Time Step: 150000
+
+timestep:150000
+restID array: [[72, 73, 7, 16]]
+
+timestep:150000
+restID array: [[72, 73, 7, 16], [72, 73, 8, 19]]
+
+timestep:150000
+restID array: [[72, 73, 7, 16], [72, 73, 8, 19], [86, 87, 7, 15]]
+
+timestep:150000
+restID array: [[72, 73, 7, 16], [72, 73, 8, 19], [86, 87, 7, 15], [86, 87, 7, 16]]
+
+timestep:150000
+restID array: [[72, 73, 7, 16], [72, 73, 8, 19], [86, 87, 7, 15], [86, 87, 7, 16], [86, 87, 39, 50]]
+
+timestep:150000
+restID array: [[72, 73, 7, 16], [72, 73, 8, 19], [86, 87, 7, 15], [86, 87, 7, 16], [86, 87, 39, 50], [121, 122, 7, 15]]
+
+timestep:150000
+restID array: [[72, 73, 7, 16], [72, 73, 8, 19], [86, 87, 7, 15], [86, 87, 7, 16], [86, 87, 39, 50], [121, 122, 7, 15], [121, 122, 7, 16]]
+
+timestep:150000
+restID array: [[72, 73, 7, 16], [72, 73, 8, 19], [86, 87, 7, 15], [86, 87, 7, 16], [86, 87, 39, 50], [121, 122, 7, 15], [121, 122, 7, 16], [121, 122, 8, 19]]
+Passing group: [72, 73, 7, 16]
+[72, 73, 7, 16]Perim = 17.1248804851
+[72, 73, 8, 19]Perim = 9.56776055008
+deleting: [72, 73, 7, 16]
+Passing group: [121, 122, 8, 19]
+[72, 73, 8, 19]Perim = 9.56776055008
+[121, 122, 8, 19]Perim = 14.3636060706
+deleting: [121, 122, 8, 19]
+Passing group: [86, 87, 7, 16]
+[86, 87, 7, 15]Perim = 8.62271749933
+[86, 87, 7, 16]Perim = 10.1327988542
+deleting: [86, 87, 7, 16]
+Passing group: [86, 87, 39, 50]
+[86, 87, 7, 15]Perim = 8.62271749933
+[86, 87, 39, 50]Perim = 16.0085041371
+deleting: [86, 87, 39, 50]
+Passing group: [121, 122, 7, 15]
+[86, 87, 7, 15]Perim = 8.62271749933
+[121, 122, 7, 15]Perim = 11.6251482769
+deleting: [121, 122, 7, 15]
+Passing group: [121, 122, 7, 16]
+[86, 87, 7, 15]Perim = 8.62271749933
+[121, 122, 7, 16]Perim = 12.1716307568
+deleting: [121, 122, 7, 16]
+none inoptimal
+restID array (post removal): [[72, 73, 8, 19], [86, 87, 7, 15]]
+Time Step: 200000
+
+timestep:200000
+restID array: [[121, 122, 7, 16]]
+none inoptimal
+restID array (post removal): [[121, 122, 7, 16]]
+Time Step: 250000
+
+timestep:250000
+restID array: [[121, 122, 7, 16]]
+none inoptimal
+restID array (post removal): [[121, 122, 7, 16]]
+Time Step: 300000
+restID array (post removal): []
+Time Step: 350000
+restID array (post removal): []
+Time Step: 400000
+
+timestep:400000
+restID array: [[121, 122, 7, 16]]
+none inoptimal
+restID array (post removal): [[121, 122, 7, 16]]
+Time Step: 450000
+
+timestep:450000
+restID array: [[121, 122, 7, 16]]
+none inoptimal
+restID array (post removal): [[121, 122, 7, 16]]
+Time Step: 500000
+
+timestep:500000
+restID array: [[121, 122, 7, 16]]
+none inoptimal
+restID array (post removal): [[121, 122, 7, 16]]
+Time Step: 550000
+restID array (post removal): []
+Time Step: 600000
+
+timestep:600000
+restID array: [[121, 122, 39, 50]]
+
+timestep:600000
+restID array: [[121, 122, 39, 50], [219, 220, 39, 50]]
+Passing group: [219, 220, 39, 50]
+[121, 122, 39, 50]Perim = 12.405248684
+[219, 220, 39, 50]Perim = 16.3433608826
+deleting: [219, 220, 39, 50]
+none inoptimal
+restID array (post removal): [[121, 122, 39, 50]]
+Time Step: 650000
+
+timestep:650000
+restID array: [[219, 220, 7, 16]]
+none inoptimal
+restID array (post removal): [[219, 220, 7, 16]]
+Time Step: 700000
+
+timestep:700000
+restID array: [[219, 220, 7, 16]]
+none inoptimal
+restID array (post removal): [[219, 220, 7, 16]]
+Time Step: 750000
+restID array (post removal): []
+Time Step: 800000
+restID array (post removal): []
+Time Step: 850000
+restID array (post removal): []
+Time Step: 900000
+restID array (post removal): []
+Time Step: 950000
+restID array (post removal): []
+Time Step: 1000000
+restID array (post removal): []
+Time Step: 1050000
+restID array (post removal): []
+Time Step: 1100000
+restID array (post removal): []
+Time Step: 1150000
+restID array (post removal): []
+Time Step: 1200000
+restID array (post removal): []
+Time Step: 1250000
+restID array (post removal): []
+Time Step: 1300000
+restID array (post removal): []
+Time Step: 1350000
+restID array (post removal): []
+Time Step: 1400000
+restID array (post removal): []
+Time Step: 1450000
+restID array (post removal): []
+Time Step: 1500000
+restID array (post removal): []
+Time Step: 1550000
+restID array (post removal): []
+Time Step: 1600000
+restID array (post removal): []
+Time Step: 1650000
+restID array (post removal): []
+Time Step: 1700000
+restID array (post removal): []
+Time Step: 1750000
+restID array (post removal): []
+Time Step: 1800000
+restID array (post removal): []
+Time Step: 1850000
+restID array (post removal): []
+Time Step: 1900000
+restID array (post removal): []
+Time Step: 1950000
+restID array (post removal): []
+Time Step: 2000000
+restID array (post removal): []
+Time Step: 2050000
+restID array (post removal): []
+Time Step: 2100000
+restID array (post removal): []
+Time Step: 2150000
+restID array (post removal): []
+Time Step: 2200000
+restID array (post removal): []
+Time Step: 2250000
+restID array (post removal): []
+Time Step: 2300000
+restID array (post removal): []
+Time Step: 2350000
+restID array (post removal): []
+Time Step: 2400000
+restID array (post removal): []
+Time Step: 2450000
+restID array (post removal): []
+Time Step: 2500000
+restID array (post removal): []
+Time Step: 2550000
+restID array (post removal): []
+Time Step: 2600000
+restID array (post removal): []
+Time Step: 2650000
+restID array (post removal): []
+Time Step: 2700000
+restID array (post removal): []
+Time Step: 2750000
+restID array (post removal): []
+Time Step: 2800000
+restID array (post removal): []
+Time Step: 2850000
+restID array (post removal): []
+Time Step: 2900000
+restID array (post removal): []
+Time Step: 2950000
+restID array (post removal): []
+Time Step: 3000000
+restID array (post removal): []
+Time Step: 3050000
+restID array (post removal): []
+Time Step: 3100000
+restID array (post removal): []
+Time Step: 3150000
+restID array (post removal): []
+Time Step: 3200000
+restID array (post removal): []
+Time Step: 3250000
+restID array (post removal): []
+Time Step: 3300000
+restID array (post removal): []
+Time Step: 3350000
+restID array (post removal): []
+Time Step: 3400000
+restID array (post removal): []
+Time Step: 3450000
+restID array (post removal): []
+Time Step: 3500000
+restID array (post removal): []
+Time Step: 3550000
+restID array (post removal): []
+Time Step: 3600000
+restID array (post removal): []
+Time Step: 3650000
+restID array (post removal): []
+Time Step: 3700000
+restID array (post removal): []
+Time Step: 3750000
+restID array (post removal): []
+Time Step: 3800000
+restID array (post removal): []
+Time Step: 3850000
+restID array (post removal): []
+Time Step: 3900000
+restID array (post removal): []
+Time Step: 3950000
+restID array (post removal): []
+Time Step: 4000000
+restID array (post removal): []
+Time Step: 4050000
+restID array (post removal): []
+Time Step: 4100000
+restID array (post removal): []
+Time Step: 4150000
+restID array (post removal): []
+Time Step: 4200000
+restID array (post removal): []
+Time Step: 4250000
+restID array (post removal): []
+Time Step: 4300000
+restID array (post removal): []
+Time Step: 4350000
+restID array (post removal): []
+Time Step: 4400000
+restID array (post removal): []
+Time Step: 4450000
+restID array (post removal): []
+Time Step: 4500000
+restID array (post removal): []
+Time Step: 4550000
+restID array (post removal): []
+Time Step: 4600000
+restID array (post removal): []
+Time Step: 4650000
+restID array (post removal): []
+Time Step: 4700000
+restID array (post removal): []
+Time Step: 4750000
+restID array (post removal): []
+Time Step: 4800000
+restID array (post removal): []
+Time Step: 4850000
+restID array (post removal): []
+Time Step: 4900000
+restID array (post removal): []
+Time Step: 4950000
+restID array (post removal): []
