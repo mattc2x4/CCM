@@ -24,20 +24,31 @@ Htype = 7
 Ntype = 3
 pastStep = -1
 H2Olist = []
+H1list = []
+H1type = 4
+Hcount = 0
+C1type = 1
+C1list = [] #every nonactive carbon
+realC1list = [] # the non active carbons bonded to active O's
+
 
 def main():
     print('in main')
     getCONH_fromMODEL('8Epon-4DETDA-H.txt')
-    print("Clist: " + str(Clist))
-    print("Olist: " + str(Olist))
-    print("Hlist: " + str(Hlist))
-    print("Nlist: " + str(Nlist))
+    
     #stores all values by index not by ID
     f = open("bonds.txt", "r")
     lineFile = f.readlines()
     getPairs(lineFile,Clist,Olist,Nlist,Hlist)
+    print("H2Olist: " + str(H2Olist))
+    print("Clist: " + str(Clist))
+    print("Olist: " + str(Olist) + "len " + str(len(Olist)))
+    print("Hlist: " + str(Hlist))
+    print("Nlist: " + str(Nlist))
+    print("C1list: " + str(C1list))
     print("NHList: " + str(NHlist))
     print("COlist: " + str(COlist))
+    print("realC1list: " + str(realC1list) + "len " + str(len(realC1list)))
     getFormed(lineFile)
     getH2O(lineFile)
     print('OHlist: ' + str(OHlist))
@@ -45,10 +56,20 @@ def main():
     mergeCONH()
     print("BondList: " + str(bondList))
     print(len(bondList))
-    print(H2Olist)
-
+    print("H2Olist: " + str(H2Olist))
+    
     
 
+#def getC1(Clist,Olist,wordList):
+#    #gets the nonactive C that the active CO are bonded to in epoxide group.  O must be bonded to this val to be sure that the bond is correct.
+#    #only called when timestep is zero.
+#    if (int(wordList[0]) in Olist):
+#        bondnum = int(wordList[2])       #gets number of bond this atom has.
+#        for i in range(bondnum):
+#         #   print("bondnum = " + str(bondnum))
+#            if ((int(wordList[3 + i]) == C1type) and (int(wordList[3 + i]) not in C1list)):
+#                C1list.append([int(wordList[0]),int(wordList[3 + i])])
+#                #print("CO added: " + str([wordList[0],wordList[3 + i]]))
           
 def getCO (Clist,Olist,wordList):  
     #print('in getCO on ' + str(wordList))
@@ -67,6 +88,8 @@ def getCO (Clist,Olist,wordList):
             if (int(wordList[3 + i]) in Olist and add):
                 COlist.append([int(wordList[0]),int(wordList[3 + i])])
                 #print("CO added: " + str([wordList[0],wordList[3 + i]]))
+            if((int(wordList[3+1]) in C1list) and (int(wordList[3+1]) not in realC1list)):
+                realC1list.append(int(wordList[3+i]))
 
         
     
@@ -126,6 +149,10 @@ def getCONH_fromSIM():
             Hlist.append(i)
         elif (atomType[i] == Ntype):
             Nlist.append(i)
+        elif (atomType[i] == H1type):
+            H1list.append(i)
+        elif (atomType[i] == C1type):
+            H1list.append(i)
             
 def getCONH_fromMODEL(modelName):
     print('in get from model')
@@ -139,12 +166,16 @@ def getCONH_fromMODEL(modelName):
             #print(wordList[2])
             if (int(wordList[2]) == Ctype):
                 Clist.append(int(wordList[0]))
-            if (int(wordList[2]) == Otype):
+            elif (int(wordList[2]) == Otype):
                 Olist.append(int(wordList[0]))
-            if (int(wordList[2]) == Htype):
+            elif (int(wordList[2]) == Htype):
                 Hlist.append(int(wordList[0]))
-            if (int(wordList[2]) == Ntype):
+            elif (int(wordList[2]) == Ntype):
                 Nlist.append(int(wordList[0]))
+            elif (int(wordList[2]) == H1type):
+                H1list.append(int(wordList[0]))
+            elif (int(wordList[2]) == C1type):
+                C1list.append(int(wordList[0]))
             
             
 def getFormed(lineFile):
@@ -213,19 +244,22 @@ def getH2O(lineFile):
                 #this should go through entire file and get all formed OH and NC bonds. 
                    
                 if (int(wordList[0]) in Olist):
-                    print("found O" + wordList[0]) 
+                    #print("found O" + wordList[0]) 
                     for group in H2Olist:
                         if (int(wordList[0]) in group):        #and we haven't already stored this O
                             stored = True
                             break
                     if (not stored):
                         bondnum = int(wordList[2])
+                        Hcount = 0
                         for i in range(bondnum):
-                            if (int(wordList[3 + i]) in Hlist):
+                            if (int(wordList[3 + i]) in Hlist or int(wordList[3 + i]) in H1list):
                                 Hcount+=1
-                                print(" found H" )
-                                if (Hcount >= 2):
+                                #print("found H" + wordList[3 + i])
+                                #print(str(Hcount)+"H")
+                                if (Hcount>1):
+                                    #print(str(Hcount)+"H")
                                     H2Olist.append([int(wordList[0]), currStep])
-                                    print("-----------------------------found H2O--------------------------")
+
 
 main()
