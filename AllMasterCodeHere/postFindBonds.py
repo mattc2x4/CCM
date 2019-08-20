@@ -7,8 +7,13 @@ Created on Thu Aug 15 15:39:59 2019
 Call Heirarchy:
     #todo
 brief explanation: 
-    first we get pairs.  this records NH and CO groups from model. this is important to make sure the OH and CN bonds are with the correct atoms.
+    first we get pairs.  this records NH and CO groups from model, calls getCO and getNH. this is important to make sure the OH and CN bonds are with the correct atoms.
     then we getFormed. this finds OH and CN pairs and adds them to a list. 
+    then we call getH2O, which finds H2O on last timestep lol. also calls checkCO to save another loop and for convenience. this finds secondary C bonds with formed OH groups. 
+    similiar function to get H2O but is very indicative of incorrect bonds.
+    mergeCONH mkaes checks to insure correct H bonds with correct O, and correct C N. insures CO-NH has same atoms as CN-OH. also removes things in checkCO.
+    
+    t
 """
 
 
@@ -40,11 +45,17 @@ C1list = [] #every nonactive carbon
 realC1list = [] # the non active carbons bonded to active O's
 greatestStep = [-1]
 OHremove = []
+removeGroup = []
 
 
 def main():
-    print('in main')
-    getCONH_fromMODEL('8Epon-4DETDA-H.txt')
+    #8Epon-4DETDA-H
+    #2Epon-1DETDA-Packmol-H
+    #4Epon-2DETDA-Packmol-H
+    #getCONH_fromMODEL('8Epon-4DETDA-H.txt')
+    getCONH_fromMODEL('4Epon-2DETDA-Packmol-H.txt')
+    #getCONH_fromMODEL('2Epon-1DETDA-H.txt')
+
     
     #stores all values by index not by ID
     f = open("bonds.txt", "r")
@@ -148,10 +159,15 @@ def mergeCONH():
                         for OH in OHlist:                            
                             if (NH[1] == OH[1] and CO[1] == OH[0]):     #Match H between NH and OH, and O between OH and CO
                                 bondList.append([CN[0], OH[0],CN[1],OH[1], OH[2]])     # to get here, C same between CN and CO, N same between NH and CN, H same between NH and OH, and O same between OH and CO.  Includes Timestep.
+    #print(bondList)
     for group in bondList:
+        print("group" + str(group))
         if (group[1] in OHremove):
-            bondList.remove(group)
-            print("removing " + str(group) + " because " + str(group[1]) + " in OHremove")
+            removeGroup.append(group)
+    #print(bondList)
+    for group in removeGroup:
+        bondList.remove(group)
+        print("removing " + str(group) + " because " + str(group[1]) + " in OHremove")
 
 def getCONH_fromSIM():
     for i in range(natoms):     #gets all carbon locations.  won't be ID till end. 
@@ -169,7 +185,6 @@ def getCONH_fromSIM():
             H1list.append(i)
             
 def getCONH_fromMODEL(modelName):
-    print('in get from model')
     f = open(modelName, "r")
     lineModel = f.readlines()
     for line in lineModel:       #loops through each line of the file
