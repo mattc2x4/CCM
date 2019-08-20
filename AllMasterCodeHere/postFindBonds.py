@@ -16,6 +16,10 @@ brief explanation:
     t
 """
 
+"""
+TODO: add unmade bond counter: NH and CO still fully intact. in this case only more time needed/better locations
+"""
+
 
 NHlist = []
 COlist = []
@@ -52,8 +56,8 @@ def main():
     #8Epon-4DETDA-H
     #2Epon-1DETDA-Packmol-H
     #4Epon-2DETDA-Packmol-H
-    #getCONH_fromMODEL('8Epon-4DETDA-H.txt')
-    getCONH_fromMODEL('4Epon-2DETDA-Packmol-H.txt')
+    getCONH_fromMODEL('8Epon-4DETDA-H.txt')
+    #getCONH_fromMODEL('4Epon-2DETDA-Packmol-H.txt')
     #getCONH_fromMODEL('2Epon-1DETDA-H.txt')
 
     
@@ -61,15 +65,14 @@ def main():
     f = open("bonds.txt", "r")
     lineFile = f.readlines()
     getPairs(lineFile,Clist,Olist,Nlist,Hlist)
-    print("H2Olist: " + str(H2Olist))
     print("Clist: " + str(Clist))
     print("Olist: " + str(Olist) + " len " + str(len(Olist)))
     print("Hlist: " + str(Hlist) + " len " + str(len(Hlist)))
     print("Nlist: " + str(Nlist) + " len " + str(len(Nlist)))
     #print("C1list: " + str(C1list))
-    print("NHList: " + str(NHlist) + " len " + str(len(NHlist)))
-    print("COlist: " + str(COlist) + " len " + str(len(COlist)))
-    print("realC1list: " + str(realC1list) + "len " + str(len(realC1list)))
+    #print("NHList: " + str(NHlist) + " len " + str(len(NHlist)))
+    #print("COlist: " + str(COlist) + " len " + str(len(COlist)))
+    #print("realC1list: " + str(realC1list) + "len " + str(len(realC1list)))
     getFormed(lineFile)
     getH2O(lineFile)
     print('OHlist: ' + str(OHlist) + " len: "  + str(len(OHlist)))
@@ -78,6 +81,16 @@ def main():
     print("OHremove: " + str(OHremove)  + " len " + str(len(OHremove)))
     mergeCONH()
     print("BondList: " + str(bondList)+ " len: " + str(len(bondList)))
+    print("bonds: "  + str(len(bondList) ))
+    print("H2O: "  + str(len(H2Olist) ))
+    print("OH: "  + str(len(OHlist) ))
+    print("CN: "  + str(len(CNlist) ))
+    
+    
+
+
+
+    #print(H1list)
     
     
 
@@ -161,8 +174,7 @@ def mergeCONH():
                                 bondList.append([CN[0], OH[0],CN[1],OH[1], OH[2]])     # to get here, C same between CN and CO, N same between NH and CN, H same between NH and OH, and O same between OH and CO.  Includes Timestep.
     #print(bondList)
     for group in bondList:
-        print("group" + str(group))
-        if (group[1] in OHremove):
+        if (group[1] in OHremove or group[1] in H2Olist ):
             removeGroup.append(group)
     #print(bondList)
     for group in removeGroup:
@@ -272,10 +284,10 @@ def getH2O(lineFile):
                 stored = False                  
                 if (int(wordList[0]) in Olist):
                     checkCO(wordList)
-                    for group in H2Olist:
-                        if (int(wordList[0]) in group):        #and we haven't already stored this O
-                            stored = True
-                            break
+                    
+                    if (int(wordList[0]) in H2Olist):        #and we haven't already stored this O
+                        stored = True
+                        break
                     if (not stored):
                         bondnum = int(wordList[2])
                         Hcount = 0
@@ -283,7 +295,7 @@ def getH2O(lineFile):
                             if (int(wordList[3 + i]) in Hlist or int(wordList[3 + i]) in H1list):
                                 Hcount+=1
                                 if (Hcount>1):
-                                    H2Olist.append([int(wordList[0]), currStep])
+                                    H2Olist.append(int(wordList[0]))
 
 def checkCO(wordList):
     #should be called on oxygen lines being added to OHlist.
@@ -302,6 +314,6 @@ def checkCO(wordList):
 
         if (append):
             OHremove.append(int(wordList[0]))
-            print(str(wordList[0]) + " not bonded to C1" )
+           # print(str(wordList[0]) + " not bonded to C1" )
     
 main()
