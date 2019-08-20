@@ -8,6 +8,9 @@ Created on Thu Aug 15 15:39:59 2019
 
 Call Heirarchy:
     #todo
+brief explanation: 
+    first we get pairs.  this records NH and CO groups from model. this is important to make sure the OH and CN bonds are with the correct atoms.
+    then we getFormed. this finds OH and CN pairs and adds them to a list. 
 
 """
 
@@ -39,6 +42,7 @@ C1type = 1
 C1list = [] #every nonactive carbon
 realC1list = [] # the non active carbons bonded to active O's
 greatestStep = [-1]
+OHremove = []
 
 
 def main():
@@ -51,20 +55,21 @@ def main():
     getPairs(lineFile,Clist,Olist,Nlist,Hlist)
     print("H2Olist: " + str(H2Olist))
     print("Clist: " + str(Clist))
-    print("Olist: " + str(Olist) + "len " + str(len(Olist)))
-    print("Hlist: " + str(Hlist))
-    print("Nlist: " + str(Nlist))
+    print("Olist: " + str(Olist) + " len " + str(len(Olist)))
+    print("Hlist: " + str(Hlist) + " len " + str(len(Hlist)))
+    print("Nlist: " + str(Nlist) + " len " + str(len(Nlist)))
     #print("C1list: " + str(C1list))
-    print("NHList: " + str(NHlist))
-    print("COlist: " + str(COlist))
+    print("NHList: " + str(NHlist) + " len " + str(len(NHlist)))
+    print("COlist: " + str(COlist) + " len " + str(len(COlist)))
     print("realC1list: " + str(realC1list) + "len " + str(len(realC1list)))
     getFormed(lineFile)
     getH2O(lineFile)
-    print('OHlist: ' + str(OHlist))
-    print('CNlist: ' + str(CNlist))
+    print('OHlist: ' + str(OHlist) + str(len(OHlist)))
+    print('CNlist: ' + str(CNlist) + str(len(CNlist)))
+    print("H2Olist: " + str(H2Olist) + "len: " + str(len(H2Olist)))
+    print("OHremove: " + str(OHremove)  + " len " + str(len(OHremove)))
     mergeCONH()
     print("BondList: " + str(bondList)+ "len: " + str(len(bondList)))
-    print("H2Olist: " + str(H2Olist) + "len: " + str(len(H2Olist)))
     
     
 
@@ -146,7 +151,10 @@ def mergeCONH():
                         for OH in OHlist:                            
                             if (NH[1] == OH[1] and CO[1] == OH[0]):     #Match H between NH and OH, and O between OH and CO
                                 bondList.append([CN[0], OH[0],CN[1],OH[1], OH[2]])     # to get here, C same between CN and CO, N same between NH and CN, H same between NH and OH, and O same between OH and CO.  Includes Timestep.
-                            
+    for group in bondList:
+        if (group[1] in OHremove):
+            bondList.remove(group)
+            print("removing " + str(group) + " because " + str(group[1]) + " in OHremove")
 
 def getCONH_fromSIM():
     for i in range(natoms):     #gets all carbon locations.  won't be ID till end. 
@@ -219,6 +227,7 @@ def getFormed(lineFile):
                                     stored = True
                                     break
                             if (not stored):
+                                
                                 bondnum = int(wordList[2])
                                 for i in range(bondnum):
                                     if (int(wordList[3 + i]) in Hlist):
@@ -250,6 +259,7 @@ def getH2O(lineFile):
             elif (wordList[0] != '#' and latestStep == currStep):
                 stored = False                  
                 if (int(wordList[0]) in Olist):
+                    checkCO(wordList)
                     for group in H2Olist:
                         if (int(wordList[0]) in group):        #and we haven't already stored this O
                             stored = True
@@ -257,11 +267,29 @@ def getH2O(lineFile):
                     if (not stored):
                         bondnum = int(wordList[2])
                         Hcount = 0
-                        for i in range(bondnum):
+                        for i in range(bondnum): 
                             if (int(wordList[3 + i]) in Hlist or int(wordList[3 + i]) in H1list):
                                 Hcount+=1
                                 if (Hcount>1):
                                     H2Olist.append([int(wordList[0]), currStep])
 
+def checkCO(wordList):
+    #should be called on oxygen lines being added to OHlist.
+    stored = False
+    append = True
+    if (int(wordList[0]) in OHremove):      
+        stored = True
+    if (not stored):
+        bondnum = int(wordList[2])
+        for i in range(bondnum): 
+            if (int(wordList[3 + i]) in C1list and int(wordList[3 + i]) in OHremove):
+                OHremove.remove(int(wordList[3+i]))
+                append = False
+            elif(int(wordList[3 + i]) in C1list):
+                append = False
 
+        if (append):
+            OHremove.append(int(wordList[0]))
+            print(str(wordList[0]) + " not bonded to C1" )
+    
 main()
