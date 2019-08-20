@@ -1,17 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Aug 15 15:39:59 2019
-
 @author: mattcohe
 """
 """
-
 Call Heirarchy:
     #todo
 brief explanation: 
     first we get pairs.  this records NH and CO groups from model. this is important to make sure the OH and CN bonds are with the correct atoms.
     then we getFormed. this finds OH and CN pairs and adds them to a list. 
-
 """
 
 
@@ -64,12 +61,12 @@ def main():
     print("realC1list: " + str(realC1list) + "len " + str(len(realC1list)))
     getFormed(lineFile)
     getH2O(lineFile)
-    print('OHlist: ' + str(OHlist) + str(len(OHlist)))
+    print('OHlist: ' + str(OHlist) + " len: "  + str(len(OHlist)))
     print('CNlist: ' + str(CNlist) + str(len(CNlist)))
-    print("H2Olist: " + str(H2Olist) + "len: " + str(len(H2Olist)))
+    print("H2Olist: " + str(H2Olist) + " len: " + str(len(H2Olist)))
     print("OHremove: " + str(OHremove)  + " len " + str(len(OHremove)))
     mergeCONH()
-    print("BondList: " + str(bondList)+ "len: " + str(len(bondList)))
+    print("BondList: " + str(bondList)+ " len: " + str(len(bondList)))
     
     
 
