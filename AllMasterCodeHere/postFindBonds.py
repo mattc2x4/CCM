@@ -50,6 +50,7 @@ realC1list = [] # the non active carbons bonded to active O's
 greatestStep = [-1]
 OHremove = []
 removeGroup = []
+origCN = []
 
 
 def main():
@@ -126,7 +127,19 @@ def getCO (Clist,Olist,wordList):
             if((int(wordList[3+i]) in C1list) and (int(wordList[3+i]) not in realC1list)):
                 realC1list.append(int(wordList[3+i]))
 
-        
+def checkCN(wordList,currStep):     #get origional C that N is bonded to, so that we can make sure they're still bonded later on. 
+    add = True
+    if (int(wordList[0]) in Nlist):
+        for CN in origCN:
+            if (int(wordList[0]) in CN):
+                add = False
+      #  print("found C " + str(wordList))
+        bondnum = int(wordList[2])       #gets number of bond this atom has.
+        for i in range(bondnum):
+         #   print("bondnum = " + str(bondnum))
+            if (int(wordList[3 + i]) in C1list and add):
+                origCN.append([int(wordList[0]),int(wordList[3 + i])])
+               
     
 
 def getNH(Nlist,Hlist,wordList):
@@ -158,6 +171,7 @@ def getPairs(lineFile,Clist,Olist,Nlist,Hlist):
             elif (currStep == 0 and wordList[0] != '#'):
                 getCO(Clist,Olist,wordList)
                 getNH(Nlist,Hlist,wordList)
+                checkCN(wordList,currStep)
             elif(currStep > 0):
                 break
 
@@ -220,44 +234,49 @@ def getCONH_fromMODEL(modelName):
             
             
 def getFormed(lineFile):
-       for line in lineFile:       #loops through each line of the file
-        wordList = line.split()     #splits the line into a list of words dilineated by any space
-        #print(wordList)
-        if (len(wordList) > 2):
-            if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
-                currStep = int(wordList[2])      #grabs and stores timestep
-            elif (wordList[0] != '#'):
-                stored = False
-                #this should go through entire file and get all formed OH and NC bonds. 
-                if (len(wordList) > 2):
-                    if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
-                        currStep = int(wordList[2])
-                if (wordList[0] != '#'):      #into the body of the file
-                    if (currStep != 0):
-                        if (int(wordList[0]) in Clist):      #THis section checks for N-C bonds, if first is C
-                            for group in CNlist:
-                                if (int(wordList[0]) in group):        #and we haven't already stored this C
-                                    stored = True
-                                    break
-                            if (not stored):
-                                bondnum = int(wordList[2])       #gets number of bond this atom has.
-                                for i in range(bondnum):
-                                    if (int(wordList[3 + i]) in Nlist):
-                                        CNlist.append([int(wordList[0]),int(wordList[3+i]),currStep])        #adds C and N to an array as a group.  
+    mostCurrent = getMostCurrentTimeStep(lineFile)
+    for line in lineFile:       #loops through each line of the file
+       wordList = line.split()     #splits the line into a list of words dilineated by any space
+       #print(wordList)
+       if (len(wordList) > 2):
+           if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
+               currStep = int(wordList[2])      #grabs and stores timestep
+           elif (wordList[0] != '#'):
+                 #this should go through entire file and get all formed OH and NC bonds. 
+                 if (mostCurrent == currStep):
+                     getCN(wordList,currStep)
+                     getOH(wordList,currStep)
 
-                        elif (int(wordList[0]) in Olist):
-                            for group in OHlist:
-                                if (int(wordList[0]) in group):        #and we haven't already stored this O
-                                    stored = True
-                                    break
-                            if (not stored):
-                                
-                                bondnum = int(wordList[2])
-                                for i in range(bondnum):
-                                    if (int(wordList[3 + i]) in Hlist):
-                                        OHlist.append([int(wordList[0]),int(wordList[3+i]), currStep])
 
     
+    
+def getCN(wordList,currStep):
+    stored = False
+    if (int(wordList[0]) in Clist):      #THis section checks for N-C bonds, if first is C
+        for group in CNlist:
+            if (int(wordList[0]) in group):        #and we haven't already stored this C
+                stored = True
+                break
+        if (not stored):
+            bondnum = int(wordList[2])       #gets number of bond this atom has.
+            for i in range(bondnum):
+                if (int(wordList[3 + i]) in Nlist):
+                    CNlist.append([int(wordList[0]),int(wordList[3+i]),currStep])        #adds C and N to an array as a group.  
+                            
+def getOH(wordList,currStep):
+    stored = False
+    if (int(wordList[0]) in Olist):
+        for group in OHlist:
+            if (int(wordList[0]) in group):        #and we haven't already stored this O
+                stored = True
+                break
+        if (not stored):
+            
+            bondnum = int(wordList[2])
+            for i in range(bondnum):
+                if (int(wordList[3 + i]) in Hlist):
+                    OHlist.append([int(wordList[0]),int(wordList[3+i]), currStep])
+
 def getMostCurrentTimeStep(lineFile):
     currStep = -1
     greatestStep = 0

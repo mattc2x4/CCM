@@ -116,7 +116,7 @@ def main():
     #--------------END OF USER DEFINED PARAMETERS--------------------------------------
 
     # run lammps script
-    lmp1 = lammps(cmdargs=lammpsArgs) # lammps(comm=MPI.COMM_WORLD,cmdargs=lammpsArgs)
+    lmp1 = lammps(comm=MPI.COMM_WORLD,cmdargs=lammpsArgs)  #lammps(cmdargs=lammpsArgs) 
     lmp1.file(lammpsScript)
     initialize()
     lmp1.command("run 0")
