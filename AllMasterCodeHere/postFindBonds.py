@@ -88,7 +88,7 @@ def main():
     #print("origNC: "  + str(origNC))
     #print("currNC: "  + str(currNC))
     crossCheckNC()
-    crossCheckOH()
+    crossCheckOHNC()
 
     
     
@@ -320,7 +320,7 @@ def crossCheckOHNC():     #will print any OH and CN group that is not recorded i
                 stored = True
                 break
         if (not stored):
-            print(str(OH) + " not Correct")
+            print(str(OH) + " OH not Correct")
     for CN in CNlist:
         for group in bondList:
             stored = False
@@ -328,7 +328,7 @@ def crossCheckOHNC():     #will print any OH and CN group that is not recorded i
                 stored = True
                 break
         if (not stored):
-            print(str(CN) + " not Correct")
+            print(str(CN) + " CN not Correct")
             
             
 def crossCheckNC(): #prints the bonds in origNC that are no longer bonded correctly. 
