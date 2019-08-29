@@ -65,10 +65,10 @@ def main():
     f = open("bonds.txt", "r")
     lineFile = f.readlines()
     getPairs(lineFile,Clist,Olist,Nlist,Hlist)
-    print("Clist: " + str(Clist))
-    print("Olist: " + str(Olist) + " len " + str(len(Olist)))
-    print("Hlist: " + str(Hlist) + " len " + str(len(Hlist)))
-    print("Nlist: " + str(Nlist) + " len " + str(len(Nlist)))
+#    print("Clist: " + str(Clist))
+#    print("Olist: " + str(Olist) + " len " + str(len(Olist)))
+#    print("Hlist: " + str(Hlist) + " len " + str(len(Hlist)))
+#    print("Nlist: " + str(Nlist) + " len " + str(len(Nlist)))
     #print("C1list: " + str(C1list))
     #print("NHList: " + str(NHlist) + " len " + str(len(NHlist)))
     #print("COlist: " + str(COlist) + " len " + str(len(COlist)))
@@ -87,6 +87,7 @@ def main():
     print("CN: "  + str(len(CNlist) ))
     #print("origNC: "  + str(origNC))
     #print("currNC: "  + str(currNC))
+    print("OHremove: "  + str(len(OHremove) ))
     crossCheckNC()
     crossCheckOHNC()
 
@@ -188,7 +189,7 @@ def mergeCONH():
     #print(bondList)
     for group in removeGroup:
         bondList.remove(group)
-        print("removing " + str(group) + " because " + str(group[1]) + " in OHremove")
+        #print("removing " + str(group) + " because " + str(group[1]) + " in OHremove")
 
 def getCONH_fromSIM():
     for i in range(natoms):     #gets all carbon locations.  won't be ID till end. 
@@ -319,15 +320,15 @@ def crossCheckOHNC():     #will print any OH and CN group that is not recorded i
             if (group[1] == OH[0]):
                 stored = True
                 break
-        if (not stored):
+        if (not stored and OH[0] not in OHremove):
             print(str(OH) + " OH not Correct")
     for CN in CNlist:
         for group in bondList:
-            stored = False
+            stored1 = False
             if (group[0] == CN[0]):
-                stored = True
+                stored1 = True
                 break
-        if (not stored):
+        if (not stored1):
             print(str(CN) + " CN not Correct")
             
             
@@ -339,7 +340,7 @@ def crossCheckNC(): #prints the bonds in origNC that are no longer bonded correc
                 stored = True
                 break
         if (not stored):
-            print(str(NC) + " no longer bonded")
+            print(str(NC) + " CN no longer bonded")
 
 def checkNC(wordList):  #checks afterwards that all the NC bonds are still present, appends to currNC which is then checked in crossCheckNC
     remain = False
