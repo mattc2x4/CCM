@@ -35,6 +35,7 @@ Clist = []
 Olist = []
 Nlist = []
 Hlist = []
+exclude = []    #modified in excludeN, containts N ID's which have 2 active C bonds and should be excluded from force addition
 #new array: 2d.  restID[0][i] will be associated with a group that is valid to recieve restraint force. written in order [C,O,N,H]
 #restOD[i][0] = C, restOD[i][1] = O, restOD[i][2] = N, restOD[i][3] = H
 restID = []
@@ -145,7 +146,7 @@ def main():
             #coordFile.write("Atom Index: "+ str(o) + " X: "+ str(coordinates[3*o]) + " Y: "+ str(coordinates[3*o+1]) + " Z: " + str(coordinates[3*o+2]))
             #coordFile.write("\n")
         search(natoms, atomType, coordinates,currentStep)
-        findSuccessBonds(natoms, atomType, coordinates,currentStep)
+        #findSuccessBonds(natoms, atomType, coordinates,currentStep)
         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
         newfile.close()
         coordFile.close()
@@ -292,30 +293,59 @@ def findOptimal(restID, c):
     return -1
 
 #This function will search for successfully created bonds
-def findSuccessBonds(natoms, atomType, c,currentStep):
-    bondFile = open("pyBond.txt",'a')
-    for i in range(0,natoms):
-        if atomType[i] == Ctype:
-            for j in range(0,natoms):
-                if ((atomType[j] == Otype) and (CObondDist[0] < distance(i,j,c)) and (CObondDist[1] > distance(i,j,c))):
-                    for k in range(0,natoms):
-                        if ( (atomType[k] == Ntype) and (CNbondDist[0] < distance(i,k,c)) and (CNbondDist[1] > distance(i,k,c))):
-                            for m in range(0,natoms):
-                                if ( (atomType[m]==Htype) and (OHbondDist[0] < distance(j,m,c)) and (OHbondDist[1] > distance(j,m,c))):
-                                    # +1 means address converted to id
-                                    #[[C,O,N,H],...]
-                                    # and (NHbondDist[0] < distance(k,m,c)) and (NHbondDist[1] > distance(k,m,c)) 
-                                    if ([i+1,j+1,k+1,m+1] not in bondID ):
-                                        bondID.append([i+1,j+1,k+1,m+1])
-                                        bondFile.write("\ntimestep:" + str(currentStep) + "\n")
-                                        bondFile.write("bondID array: " + str(bondID) + "\n")
-                                        bondFile.write("\nATOMS FOUND: timestep: " + str(currentStep) + " \nC\n ID: " + str(i+1) + " X: " + str(c[i*3]) + " Y: " + str(c[i*3+1]) + " Z: " + str(c[i*3+2]))
-                                        bondFile.write("\nO\n ID: " + str(j+1) + " X: " + str(c[j*3]) + " Y: " + str(c[j*3+1]) + " Z: " + str(c[j*3+2]))
-                                        bondFile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
-                                        bondFile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
-                                    
+#def findSuccessBonds(natoms, atomType, c,currentStep):
+#    bondFile = open("pyBond.txt",'a')
+#    for i in range(0,natoms):
+#        if atomType[i] == Ctype:
+#            for j in range(0,natoms):
+#                if ((atomType[j] == Otype) and (CObondDist[0] < distance(i,j,c)) and (CObondDist[1] > distance(i,j,c))):
+#                    for k in range(0,natoms):
+#                        if ( (atomType[k] == Ntype) and (CNbondDist[0] < distance(i,k,c)) and (CNbondDist[1] > distance(i,k,c))):
+#                            for m in range(0,natoms):
+#                                if ( (atomType[m]==Htype) and (OHbondDist[0] < distance(j,m,c)) and (OHbondDist[1] > distance(j,m,c))):
+#                                    # +1 means address converted to id
+#                                    #[[C,O,N,H],...]
+#                                    # and (NHbondDist[0] < distance(k,m,c)) and (NHbondDist[1] > distance(k,m,c)) 
+#                                    if ([i+1,j+1,k+1,m+1] not in bondID ):
+#                                        bondID.append([i+1,j+1,k+1,m+1])
+#                                        bondFile.write("\ntimestep:" + str(currentStep) + "\n")
+#                                        bondFile.write("bondID array: " + str(bondID) + "\n")
+#                                        bondFile.write("\nATOMS FOUND: timestep: " + str(currentStep) + " \nC\n ID: " + str(i+1) + " X: " + str(c[i*3]) + " Y: " + str(c[i*3+1]) + " Z: " + str(c[i*3+2]))
+#                                        bondFile.write("\nO\n ID: " + str(j+1) + " X: " + str(c[j*3]) + " Y: " + str(c[j*3+1]) + " Z: " + str(c[j*3+2]))
+#                                        bondFile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
+#                                        bondFile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
+#                                    
+def excludeN(atomType,currStep):
+    #this is used to anaylize the bonds file and exclude N's from search if they have 2 active Carbon bonds. 
+    f = open("bonds.txt", "r")
+    lineFile = f.readlines()
+    for line in lineFile:       #loops through each line of the file
+        wordList = line.split()
+        if (len(wordList) > 2):
+            if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
+                thisStep = int(wordList[2])
+            elif (currStep == thisStep):
+                stored = False                  
+                if (int(wordList[0]) in Nlist):                    
+                    if (int(wordList[0]) in exclude):        #and we haven't already stored this O
+                        stored = True
+                    if (not stored):
+                        bondnum = int(wordList[2])
+                        Ccount = 0
+                        for i in range(bondnum): 
+                            if (int(wordList[3 + i]) in Clist):
+                                Ccount+=1
+                                if (Ccount>1):
+                                    exclude.append(int(wordList[0]))                    
+    
+def getCandN(atomType):
+    #get the ID's of carbons and Nitrogens, for use in excludeN
+    for i in atomType:
+        if (i == Ctype):
+            Clist.append(i+1)
+        elif (i == Ntype):
+            Nlist.append(i+1)                
 
 
-                            
                                     
 main()
