@@ -50,13 +50,12 @@ realC1list = [] # the non active carbons bonded to active O's
 greatestStep = [-1]
 OHremove = []
 removeGroup = []
-origCN = []
+origNC = []
+currNC = []
+
 
 
 def main():
-    #8Epon-4DETDA-H
-    #2Epon-1DETDA-Packmol-H
-    #4Epon-2DETDA-Packmol-H
     getCONH_fromMODEL('8Epon-4DETDA-H.txt')
     #getCONH_fromMODEL('4Epon-2DETDA-Packmol-H.txt')
     #getCONH_fromMODEL('2Epon-1DETDA-H.txt')
@@ -86,6 +85,11 @@ def main():
     print("H2O: "  + str(len(H2Olist) ))
     print("OH: "  + str(len(OHlist) ))
     print("CN: "  + str(len(CNlist) ))
+    #print("origNC: "  + str(origNC))
+    #print("currNC: "  + str(currNC))
+    crossCheckNC()
+    crossCheckOH()
+
     
     
 
@@ -95,16 +99,7 @@ def main():
     
     
 
-#def getC1(Clist,Olist,wordList):
-#    #gets the nonactive C that the active CO are bonded to in epoxide group.  O must be bonded to this val to be sure that the bond is correct.
-#    #only called when timestep is zero.
-#    if (int(wordList[0]) in Olist):
-#        bondnum = int(wordList[2])       #gets number of bond this atom has.
-#        for i in range(bondnum):
-#         #   print("bondnum = " + str(bondnum))
-#            if ((int(wordList[3 + i]) == C1type) and (int(wordList[3 + i]) not in C1list)):
-#                C1list.append([int(wordList[0]),int(wordList[3 + i])])
-#                #print("CO added: " + str([wordList[0],wordList[3 + i]]))
+
           
 def getCO (Clist,Olist,wordList):  
     #print('in getCO on ' + str(wordList))
@@ -127,18 +122,18 @@ def getCO (Clist,Olist,wordList):
             if((int(wordList[3+i]) in C1list) and (int(wordList[3+i]) not in realC1list)):
                 realC1list.append(int(wordList[3+i]))
 
-def checkCN(wordList,currStep):     #get origional C that N is bonded to, so that we can make sure they're still bonded later on. 
+def getNC(wordList,currStep):     #get origional C that N is bonded to, so that we can make sure they're still bonded later on. 
     add = True
     if (int(wordList[0]) in Nlist):
-        for CN in origCN:
-            if (int(wordList[0]) in CN):
+        for NC in origNC:
+            if (int(wordList[0]) in NC):
                 add = False
       #  print("found C " + str(wordList))
         bondnum = int(wordList[2])       #gets number of bond this atom has.
         for i in range(bondnum):
          #   print("bondnum = " + str(bondnum))
             if (int(wordList[3 + i]) in C1list and add):
-                origCN.append([int(wordList[0]),int(wordList[3 + i])])
+                origNC.append([int(wordList[0]),int(wordList[3 + i])])
                
     
 
@@ -171,7 +166,7 @@ def getPairs(lineFile,Clist,Olist,Nlist,Hlist):
             elif (currStep == 0 and wordList[0] != '#'):
                 getCO(Clist,Olist,wordList)
                 getNH(Nlist,Hlist,wordList)
-                checkCN(wordList,currStep)
+                getNC(wordList,currStep)
             elif(currStep > 0):
                 break
 
@@ -246,6 +241,7 @@ def getFormed(lineFile):
                  if (mostCurrent == currStep):
                      getCN(wordList,currStep)
                      getOH(wordList,currStep)
+                     checkNC(wordList)
 
 
     
@@ -288,7 +284,7 @@ def getMostCurrentTimeStep(lineFile):
                 if (greatestStep < currStep):
                     greatestStep = currStep
     return greatestStep
-    
+   
 
 def getH2O(lineFile):
     #records the O in H2O.  this O should be removed from the bondlist in mergeCONH
@@ -315,6 +311,50 @@ def getH2O(lineFile):
                                 Hcount+=1
                                 if (Hcount>1):
                                     H2Olist.append(int(wordList[0]))
+
+def crossCheckOHNC():     #will print any OH and CN group that is not recorded in bondList.  NC part not so good becuase its hard to know how many bonds it should have.  
+    for OH in OHlist:
+        for group in bondList:
+            stored = False
+            if (group[1] == OH[0]):
+                stored = True
+                break
+        if (not stored):
+            print(str(OH) + " not Correct")
+    for CN in CNlist:
+        for group in bondList:
+            stored = False
+            if (group[0] == CN[0]):
+                stored = True
+                break
+        if (not stored):
+            print(str(CN) + " not Correct")
+            
+            
+def crossCheckNC(): #prints the bonds in origNC that are no longer bonded correctly. 
+    for NC in origNC:
+        for group in currNC:
+            stored = False
+            if (group[0] == NC[0]):
+                stored = True
+                break
+        if (not stored):
+            print(str(NC) + " no longer bonded")
+
+def checkNC(wordList):  #checks afterwards that all the NC bonds are still present, appends to currNC which is then checked in crossCheckNC
+    remain = False
+    if (int(wordList[0]) in Nlist):
+        for NC in origNC:
+            if (NC[0] == int(wordList[0])):
+                bondnum = int(wordList[2])
+                for i in range(bondnum): 
+                    if (int(wordList[3 + i]) == NC[1]):
+                        remain = True
+                if (remain):
+                    currNC.append(NC)
+        
+                
+    
 
 def checkCO(wordList):
     #should be called on oxygen lines being added to OHlist.
