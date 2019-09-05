@@ -35,6 +35,7 @@ Clist = []
 Olist = []
 Nlist = []
 Hlist = []
+NHlist = [] # this is for checking whether or not the N and H in the groups we are applying force to are from the same molecule. 
 exclude = []    #modified in excludeN, containts N ID's which have 2 active C bonds and should be excluded from force addition
 #should only be accessed by things that require input as ID, or subtract one. 
 #new array: 2d.  restID[0][i] will be associated with a group that is valid to recieve restraint force. written in order [C,O,N,H]
@@ -345,7 +346,8 @@ def excludeN(atomType,currStep):
                                     if (tempC.size() > 1):
                                         for C in tempC:
                                             excludeC.append(C)
-                                    exclude.append(int(wordList[0]))                    
+                                    exclude.append(int(wordList[0])) 
+    f.close()
     
 def getCandN(atomType):
     #get the ID's of carbons and Nitrogens, for use in excludeN
@@ -357,6 +359,33 @@ def getCandN(atomType):
         elif (i == Ntype):
             Nlist.append(i+1)                
 
+def checkGroupNH(group):
+    #this should see if the N and H are within the NHlist. 
+    NH = []
+    NH.append(group[2:])
 
+def checkNH():
+    # this is for checking whether or not the N and H in the groups we are applying force to are from the same molecule. 
+    f = open("bonds.txt", "r")
+    currStep = -1
+    lineFile = f.readlines()
+    for line in lineFile:       #loops through each line of the file
+        wordList = line.split()
+        if (len(wordList) > 2):
+            if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
+                currStep = int(wordList[2])
+            if (currStep == 0):
+                add = True 
+                if (int(wordList[0]) in Nlist and add):
+                    #print("found N " + str(wordList))
+                    bondnum = int(wordList[2])       #gets number of bond this atom has.
+                    for i in range(bondnum):
+                        if (int(wordList[3 + i]) in Hlist):
+                                for NH in NHlist:
+                                    if (int(wordList[3+i]) in NH):
+                                        add = False
+                                if (add):
+                                    NHlist.append([int(wordList[0]),int(wordList[3 + i])])
+                                            #print("NH added: " + str([wordList[0],wordList[3 + i]]))
                                     
 main()
