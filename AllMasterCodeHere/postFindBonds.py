@@ -330,7 +330,11 @@ def crossCheckOHNC():     #will print any OH and CN group that is not recorded i
                 break
         if (not stored1):
             print(str(CN) + " CN not Correct")
-            
+
+
+def coCrossCheck():
+#this is intended to be a light version of crossCheck. So long as the groups end up with atoms in the right place, we consider it correct.  This is going to be confusing to make. 
+#maybe will link based on the findOH portion, can look at the C bonded to the secondary C.           
             
 def crossCheckNC(): #prints the bonds in origNC that are no longer bonded correctly. 
     for NC in origNC:

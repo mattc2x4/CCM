@@ -23,7 +23,7 @@ Ctype = 5;
 Otype = 6;
 Ntype = 3;
 Htype = 7;
-
+excludeC = []       # if 2 C's are bonded then we should skip them in the search, since C is principal.  Added in excludeN. 
 # min and max pair distances for restraint criteria
 OHdist = [1.5, 8.0]
 NHdist = [0.9, 1.2]
@@ -36,6 +36,7 @@ Olist = []
 Nlist = []
 Hlist = []
 exclude = []    #modified in excludeN, containts N ID's which have 2 active C bonds and should be excluded from force addition
+#should only be accessed by things that require input as ID, or subtract one. 
 #new array: 2d.  restID[0][i] will be associated with a group that is valid to recieve restraint force. written in order [C,O,N,H]
 #restOD[i][0] = C, restOD[i][1] = O, restOD[i][2] = N, restOD[i][3] = H
 restID = []
@@ -129,6 +130,7 @@ def main():
     natoms = lmp1.get_natoms()
     coordinates = lmp1.gather_atoms("x",1,3)
     atomType = lmp1.gather_atoms("type",0,1)
+    getCandN(atomType)
     for i in range(100):
         newfile = open("rest-ALLdata.txt",'a')
         coordFile = open("coord.txt",'a')
@@ -145,6 +147,7 @@ def main():
         #for o in range(natoms):
             #coordFile.write("Atom Index: "+ str(o) + " X: "+ str(coordinates[3*o]) + " Y: "+ str(coordinates[3*o+1]) + " Z: " + str(coordinates[3*o+2]))
             #coordFile.write("\n")
+        excludeN(atomType, currentStep)
         search(natoms, atomType, coordinates,currentStep)
         #findSuccessBonds(natoms, atomType, coordinates,currentStep)
         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
@@ -186,18 +189,18 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
     # in nested for loops: i = Carbon, j = Oxygen, k = Nitrogen, m = Hydrogen; don't confuse address with id; address = id - 1
     restID = []
     for i in range(0,natoms):
-        if atomType[i] == Ctype:
+        if (atomType[i] == Ctype and i-1 not in excludeC):
             for j in range(0,natoms):
                 if ((atomType[j] == Otype) and (COdist[0] < distance(i,j,c)) and (COdist[1] > distance(i,j,c))):
                     for k in range(0,natoms):
-                        if ( (atomType[k] == Ntype) and (NCdist[0] < distance(i,k,c)) and (NCdist[1] > distance(i,k,c))):
+                        if ( (atomType[k] == Ntype) and (NCdist[0] < distance(i,k,c)) and (NCdist[1] > distance(i,k,c)) and k-1 not in exclude):
                             for m in range(0,natoms):
                                 if ( (atomType[m]==Htype) and (OHdist[0] < distance(j,m,c)) and (OHdist[1] > distance(j,m,c)) and (NHdist[0] < distance(k,m,c)) and (NHdist[1] > distance(k,m,c))):
                                     # +1 means address converted to id
                                     #[[C,O,N,H],...]
                                     restID.append([i+1,j+1,k+1,m+1])
                                     coordFile.write("\ntimestep:" + str(currentStep) + "\n")
-                                    coordFile.write("restID array: " + str(restID) + "\n")
+                                    #coordFile.write("restID array: " + str(restID) + "\n")
                                     newfile.write("\nATOMS FOUND: timestep: " + str(currentStep) + " \nC\n ID: " + str(i+1) + " X: " + str(c[i*3]) + " Y: " + str(c[i*3+1]) + " Z: " + str(c[i*3+2]))
                                     newfile.write("\nO\n ID: " + str(j+1) + " X: " + str(c[j*3]) + " Y: " + str(c[j*3+1]) + " Z: " + str(c[j*3+2]))
                                     newfile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
@@ -317,6 +320,7 @@ def findOptimal(restID, c):
 #                                    
 def excludeN(atomType,currStep):
     #this is used to anaylize the bonds file and exclude N's from search if they have 2 active Carbon bonds. 
+    #will append as ID
     f = open("bonds.txt", "r")
     lineFile = f.readlines()
     for line in lineFile:       #loops through each line of the file
@@ -332,14 +336,21 @@ def excludeN(atomType,currStep):
                     if (not stored):
                         bondnum = int(wordList[2])
                         Ccount = 0
+                        tempC = []
                         for i in range(bondnum): 
                             if (int(wordList[3 + i]) in Clist):
                                 Ccount+=1
+                                tempC.append(int(wordList[3+i]))
                                 if (Ccount>1):
+                                    if (tempC.size() > 1):
+                                        for C in tempC:
+                                            excludeC.append(C)
                                     exclude.append(int(wordList[0]))                    
     
 def getCandN(atomType):
     #get the ID's of carbons and Nitrogens, for use in excludeN
+    #stores as atom ID.
+    #call at step zero, should never change. 
     for i in atomType:
         if (i == Ctype):
             Clist.append(i+1)
