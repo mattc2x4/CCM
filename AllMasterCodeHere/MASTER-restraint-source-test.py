@@ -131,10 +131,17 @@ def main():
     natoms = lmp1.get_natoms()
     coordinates = lmp1.gather_atoms("x",1,3)
     atomType = lmp1.gather_atoms("type",0,1)
-    getCandN(atomType)
+    #getCandN(atomType)
     for i in range(100):
+        f = open("bonds.txt", "r")
+        lineFile = f.readlines()
+        getNH()
+        difFile = open("difFile.txt",'a')
+        difFile.write("is it Full? " + str(bool(NHlist)) + "\n")
+        if (lineFile):
+            difFile.write("NHlist from for loop: " + str(NHlist) + "\n")   
+        difFile.close()
         newfile = open("rest-ALLdata.txt",'a')
-        coordFile = open("coord.txt",'a')
         bondFile = open("pyBond.txt",'a')
         #gets global quantity ntimestep (current timestep) in lammps.  more extractable stuff can be viewed in library.cpp
         currentStep = lmp1.extract_global("ntimestep",0)
@@ -148,12 +155,11 @@ def main():
         #for o in range(natoms):
             #coordFile.write("Atom Index: "+ str(o) + " X: "+ str(coordinates[3*o]) + " Y: "+ str(coordinates[3*o+1]) + " Z: " + str(coordinates[3*o+2]))
             #coordFile.write("\n")
-        excludeN(atomType, currentStep)
+        #excludeN(atomType, currentStep)
         search(natoms, atomType, coordinates,currentStep)
         #findSuccessBonds(natoms, atomType, coordinates,currentStep)
         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
         newfile.close()
-        coordFile.close()
         bondFile.close()
  
     
@@ -188,24 +194,34 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
     # this function is used to search for atom pairs and to produce a
     # data file "rest-data.txt"
     # in nested for loops: i = Carbon, j = Oxygen, k = Nitrogen, m = Hydrogen; don't confuse address with id; address = id - 1
+    coordFile = open("coord.txt",'a')
     restID = []
     for i in range(0,natoms):
-        if (atomType[i] == Ctype and i-1 not in excludeC):
+        if (atomType[i] == Ctype ):
             for j in range(0,natoms):
                 if ((atomType[j] == Otype) and (COdist[0] < distance(i,j,c)) and (COdist[1] > distance(i,j,c))):
                     for k in range(0,natoms):
-                        if ( (atomType[k] == Ntype) and (NCdist[0] < distance(i,k,c)) and (NCdist[1] > distance(i,k,c)) and k-1 not in exclude):
+                        if ( (atomType[k] == Ntype) and (NCdist[0] < distance(i,k,c)) and (NCdist[1] > distance(i,k,c))):
                             for m in range(0,natoms):
                                 if ( (atomType[m]==Htype) and (OHdist[0] < distance(j,m,c)) and (OHdist[1] > distance(j,m,c)) and (NHdist[0] < distance(k,m,c)) and (NHdist[1] > distance(k,m,c))):
                                     # +1 means address converted to id
                                     #[[C,O,N,H],...]
                                     restID.append([i+1,j+1,k+1,m+1])
-                                    coordFile.write("\ntimestep:" + str(currentStep) + "\n")
+                                    #coordFile.write("\ntimestep:" + str(currentStep) + "\n")
                                     #coordFile.write("restID array: " + str(restID) + "\n")
                                     newfile.write("\nATOMS FOUND: timestep: " + str(currentStep) + " \nC\n ID: " + str(i+1) + " X: " + str(c[i*3]) + " Y: " + str(c[i*3+1]) + " Z: " + str(c[i*3+2]))
                                     newfile.write("\nO\n ID: " + str(j+1) + " X: " + str(c[j*3]) + " Y: " + str(c[j*3+1]) + " Z: " + str(c[j*3+2]))
                                     newfile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
                                     newfile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
+    difFile = open("difFile.txt",'a')
+    difFile.write("NHlist: " + str(NHlist) + " within search\n")
+    if (NHlist):
+        difFile.write("checking NH")
+        for i in restID:
+             difFile.write("checking: " + str(i) +" "+  str(checkGroupNH(i)) + "\n")
+             if(checkGroupNH(i)):
+                 difFile.write(str(i) + " has N and H from different starting groups")
+    difFile.close()         
     for i in range(0,len(restID)):      #you win python, this is such a stupid way to do this, and I hate you.  Calls findOptimal for the len, and if it doesn't return -1 it deletes at the index
         delInd = findOptimal(restID, c)
         if (delInd != -1):
@@ -225,6 +241,8 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
         #O,C
         #O,H
         #C,N
+        
+        #if (my_rank == 0):
         restfile.write("\n" + str(restID[i][1]) + " " + str(restID[i][0]) + " " + str(R12OC) + " " + str(F1OC) + " " + str(F2OC) + " " + str(COdist[0]) + " " + str(COdist[1]))
         restfile.write("\n" + str(restID[i][1]) + " " + str(restID[i][3]) + " " + str(R12OH) + " " + str(F1OH) + " " + str(F2OH) + " " + str(OHdist[0]) + " " + str(OHdist[1]))
         restfile.write("\n" + str(restID[i][0]) + " " + str(restID[i][2]) + " " + str(R12CN) + " " + str(F1CN) + " " + str(F2CN) + " " + str(NCdist[0]) + " " + str(NCdist[1]))
@@ -234,7 +252,8 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
 
         
     restfile.close()
-    
+    coordFile.close()
+
   #  newfile.write("\n" + "timestep: " + str(currentStep))
 #    if (str(len(restID)) == 0):
 #        newfile.close()
@@ -294,6 +313,7 @@ def findOptimal(restID, c):
                      coordFile.write(str(restID[i]) + "Perim = " + str(getPerim(restID[i],c)) + "\n")
                      coordFile.write(str(restID[j]) + "Perim = " + str(getPerim(restID[j],c)) + "\n")
                      return j
+       
     return -1
 
 #This function will search for successfully created bonds
@@ -322,6 +342,8 @@ def findOptimal(restID, c):
 def excludeN(atomType,currStep):
     #this is used to anaylize the bonds file and exclude N's from search if they have 2 active Carbon bonds. 
     #will append as ID
+    
+    #START FROM THE BEGINNING :9=
     f = open("bonds.txt", "r")
     lineFile = f.readlines()
     for line in lineFile:       #loops through each line of the file
@@ -361,31 +383,48 @@ def getCandN(atomType):
 
 def checkGroupNH(group):
     #this should see if the N and H are within the NHlist. 
-    NH = []
-    NH.append(group[2:])
+    #called within findOptimal
+    return group[2:] in NHlist
 
-def checkNH():
-    # this is for checking whether or not the N and H in the groups we are applying force to are from the same molecule. 
+def getNH():
+    # THis function gathers NH pairs. N should appear twice, with 2 different H. Data used in checkGroupNH
+    #call once to pull data as ID
+    difFile = open("difFile.txt",'a')
     f = open("bonds.txt", "r")
     currStep = -1
     lineFile = f.readlines()
+    difFile.write("Nlist: " + str(Nlist))
+    difFile.write("NHlist: " + str(NHlist) + " within getNH\n")
+
+#    if(lineFile):
+#        difFile.write("bonds has stuff")
+#        difFile.write(str(lineFile))
+#    else:
+#        difFile.write("NOSTUFF")
+#bonds has stuff here
     for line in lineFile:       #loops through each line of the file
         wordList = line.split()
         if (len(wordList) > 2):
             if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
                 currStep = int(wordList[2])
-            if (currStep == 0):
+            if (currStep == 0 and wordList[0] != '#'):
                 add = True 
                 if (int(wordList[0]) in Nlist and add):
+                    difFile.write(wordList[0] + "found N\n")
                     #print("found N " + str(wordList))
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
                         if (int(wordList[3 + i]) in Hlist):
-                                for NH in NHlist:
-                                    if (int(wordList[3+i]) in NH):
-                                        add = False
-                                if (add):
-                                    NHlist.append([int(wordList[0]),int(wordList[3 + i])])
-                                            #print("NH added: " + str([wordList[0],wordList[3 + i]]))
+                            difFile.write( wordList[3+i] + "in Hlist\n")
+                            for NH in NHlist:
+                                if (int(wordList[3+i]) in NH):
+                                    add = False
+                                    difFile.write("NOT adding " + wordList[0] + " " + wordList[3+i])
+
+                            if (add):
+                                NHlist.append([int(wordList[0]),int(wordList[3 + i])])
+                                difFile.write("adding " + wordList[0] + " " + wordList[3+i])
+    f.close() 
+    difFile.close()
                                     
 main()
