@@ -131,7 +131,7 @@ def main():
     natoms = lmp1.get_natoms()
     coordinates = lmp1.gather_atoms("x",1,3)
     atomType = lmp1.gather_atoms("type",0,1)
-    #getCandN(atomType)
+    getCandN(atomType)
     for i in range(100):
         f = open("bonds.txt", "r")
         lineFile = f.readlines()
@@ -231,7 +231,7 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
             coordFile.write("none inoptimal\n")
             break
             
-    coordFile.write("restID array (post removal): " + str(restID) + "\n")
+    coordFile.write(str(currentStep) + "restID array (post removal): " + str(restID) + "\n")
 
     restfile = open("rest-data.txt",'w')
     restfile.write(str(len(restID) * 3))        #number of groups we would apply force to TODO: must check for distances.
@@ -379,7 +379,9 @@ def getCandN(atomType):
         if (i == Ctype):
             Clist.append(i+1)
         elif (i == Ntype):
-            Nlist.append(i+1)                
+            Nlist.append(i+1)
+        elif (i == Htype):
+            Hlist.append(i+1)                
 
 def checkGroupNH(group):
     #this should see if the N and H are within the NHlist. 
@@ -393,7 +395,7 @@ def getNH():
     f = open("bonds.txt", "r")
     currStep = -1
     lineFile = f.readlines()
-    difFile.write("Nlist: " + str(Nlist))
+    difFile.write("Nlist: " + str(Nlist) + " within getNH\n")
     difFile.write("NHlist: " + str(NHlist) + " within getNH\n")
 
 #    if(lineFile):
@@ -407,6 +409,7 @@ def getNH():
         if (len(wordList) > 2):
             if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
                 currStep = int(wordList[2])
+                difFile.write("currStep found: " + str(currStep))
             if (currStep == 0 and wordList[0] != '#'):
                 add = True 
                 if (int(wordList[0]) in Nlist and add):
