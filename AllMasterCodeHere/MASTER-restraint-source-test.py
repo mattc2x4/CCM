@@ -206,6 +206,8 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
         for i in restID:
              if(not validGroupNH(i)):
                  difFile.write(str(i) + " has N and H from different starting groups\n")
+             else:
+                 difFile.write(str(i) + " is good\n")
     difFile.close()         
     for i in range(0,len(restID)):      #you win python, this is such a stupid way to do this, and I hate you.  Calls findOptimal for the len, and if it doesn't return -1 it deletes at the index
         delInd = findOptimal(restID, c)
@@ -404,9 +406,10 @@ def getNH():
                             if (add):
                                 NHlist.append([int(wordList[0]),int(wordList[3 + i])])
                                 #difFile.write("adding " + wordList[0] + " " + wordList[3+i]+ "\n")
-    f.close() 
-    difFile.close()
     difFile.write("Nlist: " + str(Nlist) + " within getNH\n")
     difFile.write("NHlist: " + str(NHlist) + " within getNH\n")
+    f.close() 
+    difFile.close()
+    
                                     
 main()
