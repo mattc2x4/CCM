@@ -84,7 +84,7 @@ bondID = []
 
 
 #time step
-timestep = 10000
+timestep = 50000
 
 
 
@@ -202,11 +202,15 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
                                     newfile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
                                     newfile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
     difFile = open("difFile.txt",'a')
-    difFile.write("Current Step: " + str(currentStep))
+    difFile.write("Current Step: " + str(currentStep) + "\n")
     if (NHlist):
         for i in restID:
              if(not validGroupNH(i)):
+                 difFile.write("restID: " + str(restID) + "\n")
                  difFile.write(str(i) + " has N and H from different starting groups\n")
+                 difFile.write(str(i) + " removing\n")
+                 restID.remove(i)
+                 
              else:
                  difFile.write(str(i) + " is good\n")
     difFile.close()         
