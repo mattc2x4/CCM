@@ -131,8 +131,9 @@ def main():
     natoms = lmp1.get_natoms()
     coordinates = lmp1.gather_atoms("x",1,3)
     atomType = lmp1.gather_atoms("type",0,1)
-    getCandN(atomType)
-    getNH()
+    if(my_rank == 0):
+        getCandN(atomType)
+        getNH()
     for i in range(100):
         newfile = open("rest-ALLdata.txt",'a')
         bondFile = open("pyBond.txt",'a')
@@ -145,7 +146,8 @@ def main():
         coordinates = lmp1.gather_atoms("x",1,3)
         atomType = lmp1.gather_atoms("type",0,1)
         coordFile.write("Time Step: " + str(currentStep) + "\n")
-        search(natoms, atomType, coordinates,currentStep)
+        if(my_rank == 0):
+            search(natoms, atomType, coordinates,currentStep)
         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
         newfile.close()
         bondFile.close()
@@ -202,7 +204,7 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
                                     newfile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
                                     newfile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
     difFile = open("difFile.txt",'a')
-    difFile.write("Current Step: " + str(currentStep) + "\n")
+    difFile.write("Current Step: " + str(currentStep) +"\n NHlist: " + str(NHlist) + "\n")
     if (NHlist):
         for i in restID:
              if(not validGroupNH(i)):
@@ -223,7 +225,7 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
             coordFile.write("none inoptimal\n")
             break
             
-    coordFile.write(str(currentStep) + "restID array (post removal): " + str(restID) + "\n")
+    coordFile.write(str(currentStep) + " restID array (post removal): " + str(restID) + "\n")
 
     restfile = open("rest-data.txt",'w')
     restfile.write(str(len(restID) * 3))        #number of groups we would apply force to TODO: must check for distances.
@@ -331,7 +333,7 @@ def findOptimal(restID, c):
 #                                        bondFile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
 #                                        bondFile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
 #                                    
-def excludeN(atomType,currStep):
+def excludeN(atomType,currStep,my_rank):
     #this is used to anaylize the bonds file and exclude N's from search if they have 2 active Carbon bonds. 
     #will append as ID
     
@@ -393,20 +395,15 @@ def getNH():
         if (len(wordList) > 2):
             if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
                 currStep = int(wordList[2])
-                #difFile.write("currStep found: " + str(currStep)+ "\n")
             if (currStep == 0 and wordList[0] != '#'):
                 add = True 
                 if (int(wordList[0]) in Nlist and add):
-                    #difFile.write(wordList[0] + "found N\n")
-                    #print("found N " + str(wordList))
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
                         if (int(wordList[3 + i]) in Hlist):
-                            #difFile.write( wordList[3+i] + "in Hlist\n")
                             for NH in NHlist:
                                 if (int(wordList[3+i]) in NH):
                                     add = False
-                                    #difFile.write("NOT adding " + wordList[0] + " " + wordList[3+i]+ "\n")
 
                             if (add):
                                 NHlist.append([int(wordList[0]),int(wordList[3 + i])])
