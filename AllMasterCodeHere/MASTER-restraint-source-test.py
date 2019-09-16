@@ -202,6 +202,7 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
                                     newfile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
                                     newfile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
     difFile = open("difFile.txt",'a')
+    difFile.write("Current Step: " + str(currentStep))
     if (NHlist):
         for i in restID:
              if(not validGroupNH(i)):
