@@ -4,8 +4,7 @@ Created on Thu Aug 15 15:39:59 2019
 @author: mattcohe
 """
 """
-Call Heirarchy:
-    #todo
+
 brief explanation: 
     first we get pairs.  this records NH and CO groups from model, calls getCO and getNH. this is important to make sure the OH and CN bonds are with the correct atoms.
     then we getFormed. this finds OH and CN pairs and adds them to a list. 
@@ -18,6 +17,23 @@ brief explanation:
 
 """
 TODO: add unmade bond counter: NH and CO still fully intact. in this case only more time needed/better locations
+TODO:Organize into line based functions and entire file functions, and have single loop which calls all line based functions,
+TODO:call global file/ model functions first. 
+
+    Line Based Functions (ones that only get info from single lines): 
+        getCO, getNH, getNC: Called by getPairs at time zero. this can stay independant, since they operate on only the 0th timestep.
+        getCN,getOH,checkNC: called by get formed. checks afterwards that all the NC bonds are still present, appends to currNC
+        checkCO: an O will be appended if it is not connected to a nonactive C, as it would be in a correct bond formation. done on the end. 
+        
+    Non-Line based: 
+        getPairs: operates on 0th timestep, pulls initial pair states to be compared to later.
+        mergeCONH: operates independantly of bondFile, uses values found in getCO,NH, and getCN,OH to check for appropriately formed bonds.
+        getCONH_fromMODEL: operates independantly from the bondFile, goes through model file getting C,O,H,N,C1,H1. 
+        getFormed: calls getCN,getOH,checkNC, to check at the final timestep. 
+        crossCheckNC: compares lists, origNC and currNC, and prints those that are no longer bonded. 
+        
+    FIX:
+        getH2O: could be called with post analysis funcs, but does an extra loop uneededly. 
 """
 
 
@@ -65,29 +81,23 @@ def main():
     f = open("bonds.txt", "r")
     lineFile = f.readlines()
     getPairs(lineFile,Clist,Olist,Nlist,Hlist)
-#    print("Clist: " + str(Clist))
-#    print("Olist: " + str(Olist) + " len " + str(len(Olist)))
-#    print("Hlist: " + str(Hlist) + " len " + str(len(Hlist)))
-#    print("Nlist: " + str(Nlist) + " len " + str(len(Nlist)))
-    #print("C1list: " + str(C1list))
-    #print("NHList: " + str(NHlist) + " len " + str(len(NHlist)))
-    #print("COlist: " + str(COlist) + " len " + str(len(COlist)))
-    #print("realC1list: " + str(realC1list) + "len " + str(len(realC1list)))
     getFormed(lineFile)
     getH2O(lineFile)
     print('OHlist: ' + str(OHlist) + " len: "  + str(len(OHlist)))
+    print("OH: "  + str(len(OHlist) ))
     print('CNlist: ' + str(CNlist) + str(len(CNlist)))
+    print("CN: "  + str(len(CNlist) ))
     print("H2Olist: " + str(H2Olist) + " len: " + str(len(H2Olist)))
+    print("H2O: "  + str(len(H2Olist) ))
+    print("OHremove: "  + str(len(OHremove) ))
+   # print("hlist: " + str(Hlist))
+   # print("h1list: " + str(H1list))
     print("OHremove: " + str(OHremove)  + " len " + str(len(OHremove)))
     mergeCONH()
     print("BondList: " + str(bondList)+ " len: " + str(len(bondList)))
     print("bonds: "  + str(len(bondList) ))
-    print("H2O: "  + str(len(H2Olist) ))
-    print("OH: "  + str(len(OHlist) ))
-    print("CN: "  + str(len(CNlist) ))
-    #print("origNC: "  + str(origNC))
-    #print("currNC: "  + str(currNC))
-    print("OHremove: "  + str(len(OHremove) ))
+    print("origNC: "  + str(origNC))
+    print("currNC: "  + str(currNC))
     crossCheckNC()
     crossCheckOHNC()
 
@@ -212,7 +222,6 @@ def getCONH_fromMODEL(modelName):
     for line in lineModel:       #loops through each line of the file
         wordList = line.split() 
         #print(wordList)
-        #todo: skip header:: meh yay done
         if (len(wordList) == 7): 
             #print(wordList[2])
             if (int(wordList[2]) == Ctype):
@@ -290,6 +299,7 @@ def getMostCurrentTimeStep(lineFile):
 def getH2O(lineFile):
     #records the O in H2O.  this O should be removed from the bondlist in mergeCONH
     latestStep = getMostCurrentTimeStep(lineFile)
+    #print("latest step: " + str(latestStep))
     for line in lineFile:       #loops through each line of the file
         wordList = line.split()     #splits the line into a list of words dilineated by any space
         Hcount = 0
@@ -305,12 +315,18 @@ def getH2O(lineFile):
                         stored = True
                         break
                     if (not stored):
+                       # print("oxygen: " + wordList[0])
                         bondnum = int(wordList[2])
                         Hcount = 0
                         for i in range(bondnum): 
                             if (int(wordList[3 + i]) in Hlist or int(wordList[3 + i]) in H1list):
+                                if (int(wordList[3 + i]) in Hlist):
+                                    #print("H: " + wordList[3+i])
+                                if (int(wordList[3 + i]) in H1list):
+                                    #print("H1: " + wordList[3+i])
                                 Hcount+=1
                                 if (Hcount>1):
+                                   #print("hcount: "+ str(Hcount))
                                     H2Olist.append(int(wordList[0]))
 
 def crossCheckOHNC():     #will print any OH and CN group that is not recorded in bondList.  NC part not so good becuase its hard to know how many bonds it should have.  
@@ -333,8 +349,9 @@ def crossCheckOHNC():     #will print any OH and CN group that is not recorded i
 
 
 def coCrossCheck():
-#this is intended to be a light version of crossCheck. So long as the groups end up with atoms in the right place, we consider it correct.  This is going to be confusing to make. 
-#maybe will link based on the findOH portion, can look at the C bonded to the secondary C.           
+    f = 0
+    #this is intended to be a light version of crossCheck. So long as the groups end up with atoms in the right place, we consider it correct.  This is going to be confusing to make. 
+    #maybe will link based on the findOH portion, can look at the C bonded to the secondary C.           
             
 def crossCheckNC(): #prints the bonds in origNC that are no longer bonded correctly. 
     for NC in origNC:
@@ -377,7 +394,7 @@ def checkCO(wordList):
                 append = False
 
         if (append):
-            OHremove.append(int(wordList[0]))
+            OHremove.append(int(wordList[0]))   #an O will be appended if it is not connected to a nonactive C, as it would be in a correct bond formation.
            # print(str(wordList[0]) + " not bonded to C1" )
     
 main()
