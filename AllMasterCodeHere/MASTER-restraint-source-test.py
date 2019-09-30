@@ -145,8 +145,8 @@ def main():
         boxdim[2] = lmp1.extract_global("boxzhi",1)
         coordinates = lmp1.gather_atoms("x",1,3)
         atomType = lmp1.gather_atoms("type",0,1)
-        coordFile.write("Time Step: " + str(currentStep) + "\n")
         if(my_rank == 0):
+            coordFile.write("Time Step: " + str(currentStep) + "\n")
             search(natoms, atomType, coordinates,currentStep)
         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
         newfile.close()
@@ -172,6 +172,7 @@ def main():
 
     if my_rank == 0:
         print "End of run"
+        MPI.Finalize()
     # End of python script
     
 
