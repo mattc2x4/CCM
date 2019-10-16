@@ -148,6 +148,7 @@ def main():
         if(my_rank == 0):
             coordFile.write("Time Step: " + str(currentStep) + "\n")
             search(natoms, atomType, coordinates,currentStep)
+        MPI.COMM_WORLD.Barrier()
         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
         newfile.close()
         bondFile.close()
@@ -229,7 +230,7 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
     coordFile.write(str(currentStep) + " restID array (post removal): " + str(restID) + "\n")
 
     restfile = open("rest-data.txt",'w')
-    restfile.write(str(len(restID) * 3))        #number of groups we would apply force to TODO: must check for distances.
+    restfile.write(str(len(restID) * 3))        #number of groups we would apply force to 
     #newfile.write("\n" + "timestep: " + str(currentStep))
     newfile.write(str(len(restID) * 3))
     for i in range(0,len(restID)):
@@ -241,7 +242,7 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
         restfile.write("\n" + str(restID[i][1]) + " " + str(restID[i][0]) + " " + str(R12OC) + " " + str(F1OC) + " " + str(F2OC) + " " + str(COdist[0]) + " " + str(COdist[1]))
         restfile.write("\n" + str(restID[i][1]) + " " + str(restID[i][3]) + " " + str(R12OH) + " " + str(F1OH) + " " + str(F2OH) + " " + str(OHdist[0]) + " " + str(OHdist[1]))
         restfile.write("\n" + str(restID[i][0]) + " " + str(restID[i][2]) + " " + str(R12CN) + " " + str(F1CN) + " " + str(F2CN) + " " + str(NCdist[0]) + " " + str(NCdist[1]))
-        newfile.write(str(restID))
+        newfile.write( "\n" + str(restID) + "TimeStep: " + str(currentStep) + "\n")
         newfile.write("\n" + str(restID[i][1]) + " " + str(restID[i][0]) + " " + str(R12OC) + " " + str(F1OC) + " " + str(F2OC) + " " + str(COdist[0]) + " " + str(COdist[1]))
         newfile.write("\n" + str(restID[i][1]) + " " + str(restID[i][3]) + " " + str(R12OH) + " " + str(F1OH) + " " + str(F2OH) + " " + str(OHdist[0]) + " " + str(OHdist[1]))
         newfile.write("\n" + str(restID[i][0]) + " " + str(restID[i][2]) + " " + str(R12CN) + " " + str(F1CN) + " " + str(F2CN) + " " + str(NCdist[0]) + " " + str(NCdist[1]))

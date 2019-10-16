@@ -84,20 +84,18 @@ def main():
     getFormed(lineFile)
     getH2O(lineFile)
     print('OHlist: ' + str(OHlist) + " len: "  + str(len(OHlist)))
-    print("OH: "  + str(len(OHlist) ))
     print('CNlist: ' + str(CNlist) + str(len(CNlist)))
-    print("CN: "  + str(len(CNlist) ))
     print("H2Olist: " + str(H2Olist) + " len: " + str(len(H2Olist)))
-    print("H2O: "  + str(len(H2Olist) ))
-    print("OHremove: "  + str(len(OHremove) ))
-   # print("hlist: " + str(Hlist))
-   # print("h1list: " + str(H1list))
     print("OHremove: " + str(OHremove)  + " len " + str(len(OHremove)))
     mergeCONH()
     print("BondList: " + str(bondList)+ " len: " + str(len(bondList)))
     print("bonds: "  + str(len(bondList) ))
-    print("origNC: "  + str(origNC))
-    print("currNC: "  + str(currNC))
+    print("H2O: "  + str(len(H2Olist) ))
+    print("OH: "  + str(len(OHlist) ))
+    print("CN: "  + str(len(CNlist) ))
+    #print("origNC: "  + str(origNC))
+    #print("currNC: "  + str(currNC))
+    print("OHremove: "  + str(len(OHremove) ))
     crossCheckNC()
     crossCheckOHNC()
 
@@ -320,10 +318,6 @@ def getH2O(lineFile):
                         Hcount = 0
                         for i in range(bondnum): 
                             if (int(wordList[3 + i]) in Hlist or int(wordList[3 + i]) in H1list):
-                                if (int(wordList[3 + i]) in Hlist):
-                                    #print("H: " + wordList[3+i])
-                                if (int(wordList[3 + i]) in H1list):
-                                    #print("H1: " + wordList[3+i])
                                 Hcount+=1
                                 if (Hcount>1):
                                    #print("hcount: "+ str(Hcount))
