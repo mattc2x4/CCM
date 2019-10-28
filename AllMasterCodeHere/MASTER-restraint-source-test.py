@@ -4,9 +4,7 @@ Created on Thu Jun 13 09:59:40 2019
 
 @author: mattcohe
 
-THis is the most recent and fixed version.  It could still use quite a few changes
-check search more
-remove second for loop in search responsible for appending to the rest-ALLData.txt. 
+
 """
 
 # run this python script as master for simulations requiring restraint energy.
@@ -37,6 +35,9 @@ Nlist = []
 Hlist = []
 NHlist = [] # this is for checking whether or not the N and H in the groups we are applying force to are from the same molecule. 
 exclude = []    #modified in excludeN, containts N ID's which have 2 active C bonds and should be excluded from force addition
+nonH = []
+nonC = []       #non: nonactive of __ type
+nonCH = []
 #should only be accessed by things that require input as ID, or subtract one. 
 #new array: 2d.  restID[0][i] will be associated with a group that is valid to recieve restraint force. written in order [C,O,N,H]
 #restOD[i][0] = C, restOD[i][1] = O, restOD[i][2] = N, restOD[i][3] = H
@@ -92,10 +93,8 @@ timestep = 50000
 
 #file which will contain every single instance where we apply restraint energy
 #type is A, which means that rather than writing over the file, which is the case in rest-data.txt, it will log every instance of restraint case being met.
-#TO-DO: find a way to include the exact time step in each instance of restraint.
 newfile = open("rest-ALLdata.txt",'a')
 coordFile = open("coord.txt",'a')
-bondFile = open("pyBond.txt",'a')
 
 
 
@@ -123,11 +122,6 @@ def main():
     lmp1.file(lammpsScript)
     initialize()
     lmp1.command("run 0")
-    #todo, grab box dimensions for periodic boundaries.
-     #- lmp1.extract_global("boxzlo",0)
-    #boxlo,boxhi,xy,yz,xz,periodicity,box_change = lmp1.extract_box()
-    #coordFile.write("xdim: " + str(boxdim[0]) + "\nydim: " + str(boxdim[1]) + "\nzdim: " + str(boxdim[2]) + "\n\n")
-    # Get lammps data as python variables
     natoms = lmp1.get_natoms()
     coordinates = lmp1.gather_atoms("x",1,3)
     atomType = lmp1.gather_atoms("type",0,1)
@@ -136,7 +130,6 @@ def main():
         getNH()
     for i in range(100):
         newfile = open("rest-ALLdata.txt",'a')
-        bondFile = open("pyBond.txt",'a')
         #gets global quantity ntimestep (current timestep) in lammps.  more extractable stuff can be viewed in library.cpp
         currentStep = lmp1.extract_global("ntimestep",0)
         natoms = lmp1.get_natoms()
@@ -150,25 +143,7 @@ def main():
             search(natoms, atomType, coordinates,currentStep)
         MPI.COMM_WORLD.Barrier()
         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
-        newfile.close()
-        bondFile.close()
- 
-    
-
-    # add additional commands to lammps instance and run additional steps
-
-# =============================================================================
-#     for i in range(2):
-# 		natoms = lmp1.get_natoms()
-# 		coordinates = lmp1.gather_atoms("x",1,3)
-# 		atomType = lmp1.gather_atoms("type",0,1)
-# 		coordinatesLocal = lmp1.extract_atom("x",3)
-# 		coordFile.write("\n" + str(coordinates(0)) + str(coordinates(1))+ str(coordinates(2)))
-#         search(natoms, atomType, coordinates)        
-#         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
-#         timeCurr += timestep
-# =============================================================================
-
+        newfile.close() 
     lmp1.close()
 
     if my_rank == 0:
@@ -186,6 +161,8 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
     # this function is used to search for atom pairs and to produce a
     # data file "rest-data.txt"
     # in nested for loops: i = Carbon, j = Oxygen, k = Nitrogen, m = Hydrogen; don't confuse address with id; address = id - 1
+    #makes calls to validGroup, to check N and H items.
+    #makes call to findOptimal, to remove competing groups. 
     coordFile = open("coord.txt",'a')
     restID = []
     for i in range(0,natoms):
@@ -313,29 +290,6 @@ def findOptimal(restID, c):
        
     return -1
 
-#This function will search for successfully created bonds
-#def findSuccessBonds(natoms, atomType, c,currentStep):
-#    bondFile = open("pyBond.txt",'a')
-#    for i in range(0,natoms):
-#        if atomType[i] == Ctype:
-#            for j in range(0,natoms):
-#                if ((atomType[j] == Otype) and (CObondDist[0] < distance(i,j,c)) and (CObondDist[1] > distance(i,j,c))):
-#                    for k in range(0,natoms):
-#                        if ( (atomType[k] == Ntype) and (CNbondDist[0] < distance(i,k,c)) and (CNbondDist[1] > distance(i,k,c))):
-#                            for m in range(0,natoms):
-#                                if ( (atomType[m]==Htype) and (OHbondDist[0] < distance(j,m,c)) and (OHbondDist[1] > distance(j,m,c))):
-#                                    # +1 means address converted to id
-#                                    #[[C,O,N,H],...]
-#                                    # and (NHbondDist[0] < distance(k,m,c)) and (NHbondDist[1] > distance(k,m,c)) 
-#                                    if ([i+1,j+1,k+1,m+1] not in bondID ):
-#                                        bondID.append([i+1,j+1,k+1,m+1])
-#                                        bondFile.write("\ntimestep:" + str(currentStep) + "\n")
-#                                        bondFile.write("bondID array: " + str(bondID) + "\n")
-#                                        bondFile.write("\nATOMS FOUND: timestep: " + str(currentStep) + " \nC\n ID: " + str(i+1) + " X: " + str(c[i*3]) + " Y: " + str(c[i*3+1]) + " Z: " + str(c[i*3+2]))
-#                                        bondFile.write("\nO\n ID: " + str(j+1) + " X: " + str(c[j*3]) + " Y: " + str(c[j*3+1]) + " Z: " + str(c[j*3+2]))
-#                                        bondFile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
-#                                        bondFile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
-#                                    
 def excludeN(atomType,currStep,my_rank):
     #this is used to anaylize the bonds file and exclude N's from search if they have 2 active Carbon bonds. 
     #will append as ID
@@ -370,6 +324,7 @@ def excludeN(atomType,currStep,my_rank):
     
 def getCandN(atomType):
     #get the ID's of carbons and Nitrogens, for use in excludeN
+    #gets nonactive C and H for restforce app.
     #stores as atom ID.
     #call at step zero, should never change.
     for i in range(len(atomType)):
@@ -379,6 +334,10 @@ def getCandN(atomType):
             Nlist.append(i+1)
         elif (atomType[i] == Htype):
             Hlist.append(i+1)
+        elif(atomType[i] == 1):     #non active H
+            nonH.append(i+1)
+        elif(atomType[i] == 1):     #non active C
+            nonC.append(i+1)
 
 def validGroupNH(group):
     #this should see if the N and H are within the NHlist. 
@@ -405,7 +364,7 @@ def getNH():
                     for i in range(bondnum):
                         if (int(wordList[3 + i]) in Hlist):
                             for NH in NHlist:
-                                if (int(wordList[3+i]) in NH):
+                                if (int(wordList[3+i]) in NH):       #each H should only appear once
                                     add = False
 
                             if (add):
@@ -416,5 +375,35 @@ def getNH():
     f.close() 
     difFile.close()
     
+def getCN():
+    # THis function gathers CN pairs. C can appear 3 times (?) and should have every H bonded to it listed
+    #this will be added to nonCN
+    #call once to pull data as ID
+    difFile = open("difFile.txt",'a')
+    f = open("bonds.txt", "r")
+    currStep = -1
+    lineFile = f.readlines()
+    for line in lineFile:       #loops through each line of the file
+        wordList = line.split()
+        if (len(wordList) > 2):
+            if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
+                currStep = int(wordList[2])
+            if (currStep == 0 and wordList[0] != '#'):
+                add = True 
+                if ((int(wordList[0]) in Clist or int(wordList[0]) in nonC) and add):       #if carbon is active or non active, TODO check this. should we do active C? i think yes. 
+                    bondnum = int(wordList[2])       #gets number of bond this atom has.
+                    for i in range(bondnum):
+                        if (int(wordList[3 + i]) in nonH):      
+                            for CH in nonCH:
+                                if (int(wordList[3+i]) in CH):      #each H should only appear once
+                                    add = False
+
+                            if (add):
+                                nonCH.append([int(wordList[0]),int(wordList[3 + i])])
+                                #difFile.write("adding " + wordList[0] + " " + wordList[3+i]+ "\n")
+    difFile.write("Nlist: " + str(Nlist) + " within getNH\n")
+    difFile.write("NHlist: " + str(NHlist) + " within getNH\n")
+    f.close() 
+    difFile.close()
                                     
 main()
