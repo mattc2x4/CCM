@@ -37,7 +37,7 @@ boxdim = [20,20,20]     #[x,y,z] lengths
 #f = open("testfile.txt")
 
 def main():
-    cosLaw([[0,0,0],[0,0,1]],[[0,0,0],[0,1,0]])
+    cosLaw([[0,0,0],[0,0,21]],[[0,0,0],[0,21,0]])
     
 
 
@@ -75,10 +75,8 @@ def getAngleID():
         wordList = line.split()
         if (len(wordList) > 2):
           if (wordList[0] == '#' and wordList[1] == 'Timestep' and currStep == int(wordList[2])):      # the hashtag starts the header area
-#                
             if (currStep == 0 and wordList[0] != '#'):
-                add = True
-                if (int(wordList[0]) in vertList and add):
+                if (int(wordList[0]) in vertList):
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
                         if (int(wordList[3 + i]) in end1List or int(wordList[3 + i]) in end2List):
