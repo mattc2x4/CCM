@@ -47,6 +47,10 @@ def main():
     fillAtomList(dumpLine,currStep)
     print(len(atomList))
     print(atomList[0])
+    atom1 = Atom(0,0,0,1,1)
+    atom2 = Atom(0,0,1,1,1)
+    atom3 = Atom(0,1,0,1,1)
+    print(cosLaw(atom1,atom2,atom3))        #not working correctly
     
 def fillAtomList(dumpLine,currStep):
     #read in the atom data from timestep "currStep"
@@ -64,34 +68,33 @@ def fillAtomList(dumpLine,currStep):
             startRead = True
             continue
         if (startRead):
-            atomList.append(Atom(dumpWord[3], dumpWord[4], dumpWord[5], dumpWord[0], dumpWord[1]))
+            atomList.append(Atom(float(dumpWord[3]), float(dumpWord[4]), float(dumpWord[5]), int(dumpWord[0]), int(dumpWord[1])))
             #this adds an atom object in atomList. x,y,z,ID,TYPE
             
     
 
-def distance(end1V, end2V):
+def distance(atom1, atom2):
     # this function is used to calculate the distance between 2 atoms.
     #boxdim has x, y, z dimensions of box as array, 0 = x, 1 = y, 2 = z
     #see reac.f "dista2" function
-    dx = end1V[0] - end2V[0]
-    dy = end1V[1] - end2V[1]
-    dz = end1V[2] - end2V[2]
+    dx = atom1.x - atom2.x
+    dy =  atom1.y - atom2.y
+    dz = atom1.z - atom2.z
     dx = dx - round(dx/boxdim[0]) * boxdim[0]
     dy = dy - round(dy/boxdim[1]) * boxdim[1]
     dz = dz - round(dz/boxdim[2]) * boxdim[2]
     dr = (dx*dx + dy*dy + dz*dz)**(0.5)
     return dr
 
-def cosLaw(v1, v2):
-   #v1,v2 in the format of [[start point], [end point]]
+def cosLaw(vertAtom,endAtom1, endAtom2):
    #Returns the angle in radians between vectors 'v1' and 'v2'::
-   a = distance(v1[0],v1[1])
-   print(a)
-   b = distance(v2[0],v2[1])
-   print(b)
-   c = distance(v1[1],v2[1])
-   print(c)
-   print(math.degrees(math.acos((a**2+b**2-c**2)/(2*a*b))))
+   a = distance(vertAtom,endAtom2)
+   #print(a)
+   b = distance(vertAtom, endAtom1)
+   #print(b)
+   c = distance(endAtom1,endAtom2)
+   #print(c)
+   return(math.degrees(math.acos((a**2+b**2-c**2)/(2*a*b))))
    
 def getAngleID():
     # This function will be called on each timestep. It will collect all angles in the timestep, and then add them to angList. this list
