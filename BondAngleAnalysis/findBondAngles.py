@@ -50,10 +50,12 @@ def main():
     atom1 = Atom(0,0,0,1,1)
     atom2 = Atom(0,0,1,1,1)
     atom3 = Atom(0,1,0,1,1)
-    print(cosLaw(atom1,atom2,atom3))        #not working correctly
+    print(cosLaw(atom1,atom2,atom3))
     
 def fillAtomList(dumpLine,currStep):
     #read in the atom data from timestep "currStep"
+    #finds meantions of timestep in header. compares with input (master) step. if it is greater than, breaks loop, allowing
+    #main code to run instead. when it finds the correct 
     #i am sorry to all my computerscience teachers, but i have to use continue and break because of this file format.
     startRead = False
     for i in range(len(dumpLine)):
@@ -61,13 +63,15 @@ def fillAtomList(dumpLine,currStep):
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):    #read timestep, if its correct continue. otherwise, break loop.
             myStep = int(dumpLine[i+1].split()[0])
             print(myStep)
-            if(myStep != currStep):
+            if(myStep > currStep):
                 #print("breaking at " + str(myStep))
                 break
+            elif(myStep == currStep):
+                step = True
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "ATOMS"):    #when we see this header we want to skip this iteration, then continue on the next line, hence continue. 
             startRead = True
             continue
-        if (startRead):
+        if (startRead and step):
             atomList.append(Atom(float(dumpWord[3]), float(dumpWord[4]), float(dumpWord[5]), int(dumpWord[0]), int(dumpWord[1])))
             #this adds an atom object in atomList. x,y,z,ID,TYPE
             
