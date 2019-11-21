@@ -32,7 +32,7 @@ vertList = []   #lists containing ID's of each type.
 end1List = []
 end2List = []
 
-atomList = []
+atomList = []   #this will hold all angle data types. will be in order, with the 0th atom being the atom with ID 1.
 
 angList = []  #this will hold all angle vals calculated below, in the format [[vertID,endID1,endID2, ANGLE],...] endID1 and 
 #end2ID interchangable locations. 
@@ -122,6 +122,15 @@ def getAngleID():
                                 angList.append([int(wordList[0]),firstEndID,int(wordList[3 + i])])
                                 endCount = 0
     f.close()
+
+def calcAngles(currStep):
+    #this function will take the info in angList, and use it to calculate angle values based on the atom data in atomList.
+    #angList: [[vertID,endID1,endID2, ANGLE,timeStep],...]
+    #called on angLIst once per timestep, though angList will contain all steps. may be problematic due to data sizes. 
+    for ang in angList:
+        if (ang[4] == currStep):
+            cosLaw(atomList[ang[0] - 1], atomList[ang[1] - 1]. atomList[ang[2] - 1])
+            
 
 class Atom:
     #this is an atom data structure. This is used to store each atom's x,y,z vals, Id, and Type. default values are -1.
