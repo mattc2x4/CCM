@@ -10,9 +10,11 @@ Created on Tue Oct 29 15:45:57 2019
 """Constants"""
 #this is where you imput the 3 points of the angle. 
 
-vertexType = 0   #this is where you should put the type of the vertex
-endType1 = 0    #the other two types you want to calculate angle of
-endType2 = 0
+vertexType = 4   #this is where you should put the type of the vertex
+endType1 = 3    #the other two types you want to calculate angle of
+endType2 = 3
+#vert = 1, end1 = 3, end2 = 5 for TEST case
+
 currStep = 4080000   #put the first step here
 incrSize = -1   ## of timesteps inbetween each print in dump/ bond file
 
@@ -20,17 +22,7 @@ incrSize = -1   ## of timesteps inbetween each print in dump/ bond file
 
 
 """don't touch these"""
-vertID = 0
-endID1 = 0
-endID2 = 0
 
-
-end1V = []  #vector whose endpoint is end1, vertex is vertex stored as [x,y,z]
-end2V = []
-
-vertList = []   #lists containing ID's of each type. 
-end1List = []
-end2List = []
 
 atomList = []   #this will hold all angle data types. will be in order, with the 0th atom being the atom with ID 1.
 
@@ -38,26 +30,31 @@ angList = []  #this will hold all angle vals calculated below, in the format [[v
 #end2ID interchangable locations. 
 
 boxdim = [20,20,20]     #[x,y,z] lengths
-#f = open("testfile.txt")
 
 def main():
     #cosLaw([[0,0,0],[0,0,21]],[[0,0,0],[0,21,0]])
     dump = open("dump_final_SHORT.txt","r")
-    dumpLine = dump.readlines()
-    fillAtomList(dumpLine,currStep)
-    print(len(atomList))
-    print(atomList[0])
+    bonds = open("MD_bonds_TEST.txt", "r")
+    
+    fillAtomList(dump,currStep)
+    getAngleID(bonds,currStep)
+    #print(len(atomList))
+    #print(atomList[0])
+    #print(atomList[2])
+    #print(atomList[4])
+    print(angList[0])
     atom1 = Atom(0,0,0,1,1)
     atom2 = Atom(0,0,1,1,1)
     atom3 = Atom(0,1,0,1,1)
     print(cosLaw(atom1,atom2,atom3))
     
-def fillAtomList(dumpLine,currStep):
+def fillAtomList(dump,currStep):
     #read in the atom data from timestep "currStep"
     #finds meantions of timestep in header. compares with input (master) step. if it is greater than, breaks loop, allowing
     #main code to run instead. when it finds the correct 
     #i am sorry to all my computerscience teachers, but i have to use continue and break because of this file format.
     startRead = False
+    dumpLine = dump.readlines()
     for i in range(len(dumpLine)):
         dumpWord = dumpLine[i].split()
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):    #read timestep, if its correct continue. otherwise, break loop.
@@ -100,28 +97,60 @@ def cosLaw(vertAtom,endAtom1, endAtom2):
    #print(c)
    return(math.degrees(math.acos((a**2+b**2-c**2)/(2*a*b))))
    
-def getAngleID():
+def getAngleID(bonds,currStep):
     # This function will be called on each timestep. It will collect all angles in the timestep, and then add them to angList. this list
     #will be modified to calculate the angle later. 
     #call once to pull data as ID
-    lineFile = f.readlines()
-    endCount = 0
+#    lineFile = f.readlines()
+#    endCount = 0
+#    for line in lineFile:       #loops through each line of the file
+#        wordList = line.split()
+#        if (len(wordList) > 2):
+#          if (wordList[0] == '#' and wordList[1] == 'Timestep' and currStep == int(wordList[2])):      # the hashtag starts the header area
+#            if (currStep == 0 and wordList[0] != '#'):
+#                if (int(wordList[0]) in vertList):
+#                    bondnum = int(wordList[2])       #gets number of bond this atom has.
+#                    for i in range(bondnum):
+#                        if (int(wordList[3 + i]) in end1List or int(wordList[3 + i]) in end2List):
+#                            endCount+=1
+#                            if (endCount == 1):     #this is the first one we found, store in temp
+#                                firstEndID = int(wordList[3+i])
+#                            elif(endCount == 2):    #this is the second one we found, add time, reset counter.
+#                                angList.append([int(wordList[0]),firstEndID,int(wordList[3 + i])])
+#                                endCount = 0
+#    f.close()
+    lineFile = bonds.readlines()
+    read = False
     for line in lineFile:       #loops through each line of the file
         wordList = line.split()
+        endCount = 0
         if (len(wordList) > 2):
-          if (wordList[0] == '#' and wordList[1] == 'Timestep' and currStep == int(wordList[2])):      # the hashtag starts the header area
-            if (currStep == 0 and wordList[0] != '#'):
-                if (int(wordList[0]) in vertList):
+            if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # this checks timestep. if timestep in file matches input, read lines.upon encountering another, break loop.
+                if(currStep == int(wordList[2])):
+                    read = True
+                else:
+                    print("breaking\n")
+                    break
+            if (read == True and wordList[0] != '#'):
+                print(str(atomList[int(wordList[0]) - 1].TYPE) + str(atomList[int(wordList[0]) - 1].TYPE == vertexType))
+                if (atomList[int(wordList[0]) - 1].TYPE == vertexType):
+                    #access the corresponding atom data. subtract one to translate to index. Make sure ID is correct.  and int(wordList[0]) == atomList[int(wordList[0]) - 1].ID
+                    print("vertex type found")
+                    print(wordList)
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
-                        if (int(wordList[3 + i]) in end1List or int(wordList[3 + i]) in end2List):
-                            endCount+=1
-                            if (endCount == 1):     #this is the first one we found, store in temp
+                        try: 
+                            atomList[int(wordList[3 + i]) - 1].TYPE  == endType1 or atomList[int(wordList[3 + i]) - 1].TYPE == endType2
+                        except IndexError:
+                            print(wordList[3 + i] + " " + wordList[3 + i])
+                        if (atomList[int(wordList[3 + i]) - 1].TYPE  == endType1 or atomList[int(wordList[3 + i]) - 1].TYPE == endType2):      
+                           endCount+=1
+                           print("found end")
+                           if (endCount == 1):     #this is the first one we found, store in temp
                                 firstEndID = int(wordList[3+i])
-                            elif(endCount == 2):    #this is the second one we found, add time, reset counter.
-                                angList.append([int(wordList[0]),firstEndID,int(wordList[3 + i])])
+                           elif(endCount == 2):    #this is the second one we found, add time, reset counter.
+                                angList.append(Angle(int(wordList[0]),firstEndID,int(wordList[3+i]),currStep,-1))
                                 endCount = 0
-    f.close()
 
 def calcAngles(currStep):
     #this function will take the info in angList, and use it to calculate angle values based on the atom data in atomList.
@@ -130,6 +159,7 @@ def calcAngles(currStep):
     for ang in angList:
         if (ang[4] == currStep):
             cosLaw(atomList[ang[0] - 1], atomList[ang[1] - 1]. atomList[ang[2] - 1])
+        
             
 
 class Atom:
@@ -142,15 +172,19 @@ class Atom:
         self.TYPE = TYPE
    # def printData():
        # print("Atom ID: " + str(self.ID) + "\n" + "TYPE: " + str(self.TYPE) + "\n" + "X: " + str(self.x) + "\n" + "Y: " + str(self.y) + "\n" + "Z: " + str(self.z) + "\n") 
-    def __str__(self):
+    def __str__(self):      #printing atom object will yield the following
         return ("Atom ID: " + str(self.ID) + "\n" + "TYPE: " + str(self.TYPE) + "\n" + "X: " + str(self.x) + "\n" + "Y: " + str(self.y) + "\n" + "Z: " + str(self.z) + "\n")
 
 class Angle:
     #this is an angle data structure. This is used to store each angle's data as seen below.
-     vertID = -1
-     end1ID = -1
-     end2ID = -1
-     timeStep = -1
-     angleVal = -1
+    def __init__(self, vertID,end1ID,end2ID,timestep,angle):
+        self.vertID = vertID
+        self.end1ID = end1ID
+        self.end2ID = end2ID
+        self.timestep = timestep
+        self.angle = angle
+    def __str__(self):      #printing angle object will yield the following
+        return ("Vertex ID: " + str(self.vertID) + "\n" + "End1ID: " + str(self.end1ID) + "\n" + "End2ID: " + str(self.end2ID) + "\n" + "Timestep: " + str(self.timestep) + "\n" + "angle: " + str(self.angle) + "\n")
+
     
 main()
