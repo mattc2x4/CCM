@@ -38,15 +38,9 @@ def main():
     
     fillAtomList(dump,currStep)
     getAngleID(bonds,currStep)
-    #print(len(atomList))
-    #print(atomList[0])
-    #print(atomList[2])
-    #print(atomList[4])
     print(angList[0])
-    atom1 = Atom(0,0,0,1,1)
-    atom2 = Atom(0,0,1,1,1)
-    atom3 = Atom(0,1,0,1,1)
-    print(cosLaw(atom1,atom2,atom3))
+    calcAngles(currStep)
+    print(angList[0])
     
 def fillAtomList(dump,currStep):
     #read in the atom data from timestep "currStep"
@@ -88,6 +82,7 @@ def distance(atom1, atom2):
     return dr
 
 def cosLaw(vertAtom,endAtom1, endAtom2):
+    #accepts Atom objects as input
    #Returns the angle in radians between vectors 'v1' and 'v2'::
    a = distance(vertAtom,endAtom2)
    #print(a)
@@ -101,24 +96,7 @@ def getAngleID(bonds,currStep):
     # This function will be called on each timestep. It will collect all angles in the timestep, and then add them to angList. this list
     #will be modified to calculate the angle later. 
     #call once to pull data as ID
-#    lineFile = f.readlines()
-#    endCount = 0
-#    for line in lineFile:       #loops through each line of the file
-#        wordList = line.split()
-#        if (len(wordList) > 2):
-#          if (wordList[0] == '#' and wordList[1] == 'Timestep' and currStep == int(wordList[2])):      # the hashtag starts the header area
-#            if (currStep == 0 and wordList[0] != '#'):
-#                if (int(wordList[0]) in vertList):
-#                    bondnum = int(wordList[2])       #gets number of bond this atom has.
-#                    for i in range(bondnum):
-#                        if (int(wordList[3 + i]) in end1List or int(wordList[3 + i]) in end2List):
-#                            endCount+=1
-#                            if (endCount == 1):     #this is the first one we found, store in temp
-#                                firstEndID = int(wordList[3+i])
-#                            elif(endCount == 2):    #this is the second one we found, add time, reset counter.
-#                                angList.append([int(wordList[0]),firstEndID,int(wordList[3 + i])])
-#                                endCount = 0
-#    f.close()
+    #TODO: make angle data actually contain Atom objects
     lineFile = bonds.readlines()
     read = False
     for line in lineFile:       #loops through each line of the file
@@ -154,11 +132,11 @@ def getAngleID(bonds,currStep):
 
 def calcAngles(currStep):
     #this function will take the info in angList, and use it to calculate angle values based on the atom data in atomList.
-    #angList: [[vertID,endID1,endID2, ANGLE,timeStep],...]
     #called on angLIst once per timestep, though angList will contain all steps. may be problematic due to data sizes. 
+    #TODO: modify this to decrease compexity based on what yoon wants. this dude needs to respond faster.
     for ang in angList:
-        if (ang[4] == currStep):
-            cosLaw(atomList[ang[0] - 1], atomList[ang[1] - 1]. atomList[ang[2] - 1])
+        if (ang.timestep == currStep):
+            ang.angle = cosLaw(atomList[ang.vertID-1],atomList[ang.end1ID-1],atomList[ang.end2ID-1])
         
             
 
