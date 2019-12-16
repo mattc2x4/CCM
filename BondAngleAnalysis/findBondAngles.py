@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import math
-#import numpy as np
+import matplotlib.pyplot as plt
 """
 Created on Tue Oct 29 15:45:57 2019
 
@@ -15,13 +15,11 @@ endType1 = 3    #the other two types you want to calculate angle of
 endType2 = 3
 #vert = 1, end1 = 3, end2 = 5 for TEST case
 
-currStep = 4080000   #put the first step here
+currStep  = 4080000   #put the first step here
+finalStep = 4085000   #put the final Step here
 incrSize = -1   ## of timesteps inbetween each print in dump/ bond file
 
 """end Constants"""
-
-
-"""don't touch these"""
 
 
 atomList = []   #this will hold all angle data types. will be in order, with the 0th atom being the atom with ID 1.
@@ -32,15 +30,17 @@ angList = []  #this will hold all angle vals calculated below, in the format [[v
 boxdim = [20,20,20]     #[x,y,z] lengths
 
 def main():
-    #cosLaw([[0,0,0],[0,0,21]],[[0,0,0],[0,21,0]])
-    dump = open("dump_final_SHORT.txt","r")
+    #CONFIGURE FILES
+    #INSERT DUMP_FINAL FILES TO DUMP
+    #INSERT BOND FILES TO BONDS
+    dump = open("dump_final_SHORT.txt","r") 
     bonds = open("MD_bonds_TEST.txt", "r")
     
     fillAtomList(dump,currStep)
     getAngleID(bonds,currStep)
-    #print(angList[0])
     calcAngles(currStep)
     print(angList[0])
+    plot([5,10,15,20,20,20,20,20,25,30,35],0)
     
 def fillAtomList(dump,currStep):
     #read in the atom data from timestep "currStep"
@@ -120,7 +120,7 @@ def getAngleID(bonds,currStep):
                         try: 
                             atomList[int(wordList[3 + i]) - 1].TYPE  == endType1 or atomList[int(wordList[3 + i]) - 1].TYPE == endType2
                         except IndexError:
-                            print(wordList[3 + i] + " " + wordList[3 + i])
+                            print("Files Incomplete: an atom exists in bonds file that does not exist in dump this atom is: " + str(int(wordList[3 + i])))
                         if (atomList[int(wordList[3 + i]) - 1].TYPE  == endType1 or atomList[int(wordList[3 + i]) - 1].TYPE == endType2):      
                            endCount+=1
                            print("found end")
@@ -137,8 +137,14 @@ def calcAngles(currStep):
     for ang in angList:
         if (ang.timestep == currStep):
             ang.angle = cosLaw(atomList[ang.vertID-1],atomList[ang.end1ID-1],atomList[ang.end2ID-1])
+            angleVals.append(cosLaw(atomList[ang.vertID-1],atomList[ang.end1ID-1],atomList[ang.end2ID-1]))
+
         
-            
+def plot(arr,currStep):
+    plt.hist(arr)
+    plt.title('Histogram')
+    plt.savefig('plot ' + str(currStep) + '.png')
+           
 
 class Atom:
     #this is an atom data structure. This is used to store each atom's x,y,z vals, Id, and Type. default values are -1.
@@ -148,8 +154,6 @@ class Atom:
         self.z = z
         self.ID = ID
         self.TYPE = TYPE
-   # def printData():
-       # print("Atom ID: " + str(self.ID) + "\n" + "TYPE: " + str(self.TYPE) + "\n" + "X: " + str(self.x) + "\n" + "Y: " + str(self.y) + "\n" + "Z: " + str(self.z) + "\n") 
     def __str__(self):      #printing atom object will yield the following
         return ("Atom ID: " + str(self.ID) + "\n" + "TYPE: " + str(self.TYPE) + "\n" + "X: " + str(self.x) + "\n" + "Y: " + str(self.y) + "\n" + "Z: " + str(self.z) + "\n")
 
