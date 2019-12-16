@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import math
-import numpy as np
+#import numpy as np
 """
 Created on Tue Oct 29 15:45:57 2019
 
@@ -38,7 +38,7 @@ def main():
     
     fillAtomList(dump,currStep)
     getAngleID(bonds,currStep)
-    print(angList[0])
+    #print(angList[0])
     calcAngles(currStep)
     print(angList[0])
     
@@ -110,7 +110,7 @@ def getAngleID(bonds,currStep):
                     print("breaking\n")
                     break
             if (read == True and wordList[0] != '#'):
-                print(str(atomList[int(wordList[0]) - 1].TYPE) + str(atomList[int(wordList[0]) - 1].TYPE == vertexType))
+                #print(str(atomList[int(wordList[0]) - 1].TYPE) + str(atomList[int(wordList[0]) - 1].TYPE == vertexType))
                 if (atomList[int(wordList[0]) - 1].TYPE == vertexType):
                     #access the corresponding atom data. subtract one to translate to index. Make sure ID is correct.  and int(wordList[0]) == atomList[int(wordList[0]) - 1].ID
                     print("vertex type found")
