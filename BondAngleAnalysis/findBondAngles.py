@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import math
 import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
+import scipy.stats
 """
 Created on Tue Oct 29 15:45:57 2019
 
@@ -9,11 +11,17 @@ Created on Tue Oct 29 15:45:57 2019
 
 """Constants"""
 #this is where you imput the 3 points of the angle. 
+#atom type 1 = Al 
+#atom type 2 = Mg
+#atom type 3 = O
+#atom type 4 = Si
 
-vertexType = 4   #this is where you should put the type of the vertex
+vertexType = 1   #this is where you should put the type of the vertex
 endType1 = 3    #the other two types you want to calculate angle of
 endType2 = 3
-#vert = 1, end1 = 3, end2 = 5 for TEST case
+
+#O-Al-O
+
 
 currStep  = 4080000   #put the first step here
 finalStep = 4085000   #put the final Step here
@@ -23,7 +31,7 @@ incrSize = -1   ## of timesteps inbetween each print in dump/ bond file
 
 
 atomList = []   #this will hold all angle data types. will be in order, with the 0th atom being the atom with ID 1.
-
+angleVals = [] #containts angle values in raw form, to be graphed
 angList = []  #this will hold all angle vals calculated below, in the format [[vertID,endID1,endID2, ANGLE],...] endID1 and 
 #end2ID interchangable locations. 
 
@@ -33,15 +41,20 @@ def main():
     #CONFIGURE FILES
     #INSERT DUMP_FINAL FILES TO DUMP
     #INSERT BOND FILES TO BONDS
-    dump = open("dump_final_SHORT.txt","r") 
-    bonds = open("MD_bonds_TEST.txt", "r")
+    dump = open("dump_final.txt","r") 
+    bonds = open("MD_bonds_final.reaxc", "r")
     
     fillAtomList(dump,currStep)
+    
     getAngleID(bonds,currStep)
     calcAngles(currStep)
-    print(angList[0])
-    plot([5,10,15,20,20,20,20,20,25,30,35],0)
-    
+    print(len(atomList))
+    print(len(angleVals))
+    plot(angleVals,currStep)
+    print("average value: " + str(mean = sum(angleVals) / len(angleVals)))
+
+
+
 def fillAtomList(dump,currStep):
     #read in the atom data from timestep "currStep"
     #finds meantions of timestep in header. compares with input (master) step. if it is greater than, breaks loop, allowing
@@ -96,7 +109,7 @@ def getAngleID(bonds,currStep):
     # This function will be called on each timestep. It will collect all angles in the timestep, and then add them to angList. this list
     #will be modified to calculate the angle later. 
     #call once to pull data as ID
-    #TODO: make angle data actually contain Atom objects
+    #TODO: 
     lineFile = bonds.readlines()
     read = False
     for line in lineFile:       #loops through each line of the file
@@ -141,10 +154,43 @@ def calcAngles(currStep):
 
         
 def plot(arr,currStep):
-    plt.hist(arr)
-    plt.title('Histogram')
+    num_bins = 20
+    mu = 100 # mean of distribution
+    sigma = 15 # standard deviation of distribution
+    # the histogram of the data
+    n, bins, patches = plt.hist(arr, num_bins, normed=1, facecolor='blue', alpha=0.5)
+
+    # add a 'best fit' line
+    y = mlab.normpdf(bins, mu, sigma)
+    plt.plot(bins, y, 'r--')
+    plt.xlabel('Angle')
+    plt.ylabel('Probability')
+    plt.title('Angle frequency\nTimestep: ' + str(currStep))
     plt.savefig('plot ' + str(currStep) + '.png')
            
+def plotNorm(arr,currStep):
+    x_min = 0.0
+    x_max = 180.0
+
+    mean = sum(arr) / len(arr)
+    std = 2.0
+
+    y = scipy.stats.norm.pdf(arr,mean,std)
+
+    plt.plot(arr,y, color='coral')
+
+    plt.grid()
+
+    plt.xlim(x_min,x_max)
+    plt.ylim(0,0.25)
+
+    plt.title('How to plot a normal distribution in python with matplotlib',fontsize=10)
+
+    plt.xlabel('x')
+    plt.ylabel('Normal Distribution')
+
+    plt.savefig("normal_distribution.png")
+    plt.show()
 
 class Atom:
     #this is an atom data structure. This is used to store each atom's x,y,z vals, Id, and Type. default values are -1.
