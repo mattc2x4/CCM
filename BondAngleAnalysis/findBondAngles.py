@@ -51,7 +51,7 @@ def main():
     print(len(atomList))
     print(len(angleVals))
     plot(angleVals,currStep)
-    print("average value: " + str(mean = sum(angleVals) / len(angleVals)))
+    print("average value: " + str(sum(angleVals) / len(angleVals)))
 
 
 
