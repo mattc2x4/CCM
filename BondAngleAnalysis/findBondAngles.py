@@ -33,25 +33,35 @@ incrSize = -1   ## of timesteps inbetween each print in dump/ bond file
 atomList = []   #this will hold all angle data types. will be in order, with the 0th atom being the atom with ID 1.
 angleVals = [] #containts angle values in raw form, to be graphed
 angList = []  #this will hold all angle vals calculated below, in the format [[vertID,endID1,endID2, ANGLE],...] endID1 and 
+#clear angList every timestep.
 #end2ID interchangable locations. 
 
 boxdim = [20,20,20]     #[x,y,z] lengths
 
 def main():
+    currStep  = 4080000
     #CONFIGURE FILES
     #INSERT DUMP_FINAL FILES TO DUMP
     #INSERT BOND FILES TO BONDS
     dump = open("dump_final.txt","r") 
     bonds = open("MD_bonds_final.reaxc", "r")
     
+    # while(currStep < finalStep):
+    #     print("currStep: " + str(currStep))
+    #     fillAtomList(dump,currStep)
+    #     getAngleID(bonds,currStep)
+    #     calcAngles(currStep)
+    #     print("average value: " + str(sum(angleVals) / len(angleVals)))
+    #     currStep += incrSize
+    #     angList.clear()
+    # plot(angleVals,"sim")
+    print("currStep: " + str(currStep))
     fillAtomList(dump,currStep)
-    
     getAngleID(bonds,currStep)
     calcAngles(currStep)
-    print(len(atomList))
-    print(len(angleVals))
-    plot(angleVals,currStep)
     print("average value: " + str(sum(angleVals) / len(angleVals)))
+    currStep += incrSize
+    angList.clear()
 
 
 
@@ -60,13 +70,14 @@ def fillAtomList(dump,currStep):
     #finds meantions of timestep in header. compares with input (master) step. if it is greater than, breaks loop, allowing
     #main code to run instead. when it finds the correct 
     #i am sorry to all my computerscience teachers, but i have to use continue and break because of this file format.
+    print("filling atom list for " + str(currStep) + " step.")
     startRead = False
     dumpLine = dump.readlines()
     for i in range(len(dumpLine)):
         dumpWord = dumpLine[i].split()
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):    #read timestep, if its correct continue. otherwise, break loop.
             myStep = int(dumpLine[i+1].split()[0])
-            print(myStep)
+            #print(myStep)
             if(myStep > currStep):
                 #print("breaking at " + str(myStep))
                 break
@@ -109,7 +120,7 @@ def getAngleID(bonds,currStep):
     # This function will be called on each timestep. It will collect all angles in the timestep, and then add them to angList. this list
     #will be modified to calculate the angle later. 
     #call once to pull data as ID
-    #TODO: 
+    print("getting angles for " + str(currStep) + " step.")
     lineFile = bonds.readlines()
     read = False
     for line in lineFile:       #loops through each line of the file
@@ -120,14 +131,12 @@ def getAngleID(bonds,currStep):
                 if(currStep == int(wordList[2])):
                     read = True
                 else:
-                    print("breaking\n")
+                    #print("breaking\n")
                     break
             if (read == True and wordList[0] != '#'):
                 #print(str(atomList[int(wordList[0]) - 1].TYPE) + str(atomList[int(wordList[0]) - 1].TYPE == vertexType))
                 if (atomList[int(wordList[0]) - 1].TYPE == vertexType):
                     #access the corresponding atom data. subtract one to translate to index. Make sure ID is correct.  and int(wordList[0]) == atomList[int(wordList[0]) - 1].ID
-                    print("vertex type found")
-                    print(wordList)
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
                         try: 
@@ -136,7 +145,7 @@ def getAngleID(bonds,currStep):
                             print("Files Incomplete: an atom exists in bonds file that does not exist in dump this atom is: " + str(int(wordList[3 + i])))
                         if (atomList[int(wordList[3 + i]) - 1].TYPE  == endType1 or atomList[int(wordList[3 + i]) - 1].TYPE == endType2):      
                            endCount+=1
-                           print("found end")
+                           #print("found end")
                            if (endCount == 1):     #this is the first one we found, store in temp
                                 firstEndID = int(wordList[3+i])
                            elif(endCount == 2):    #this is the second one we found, add time, reset counter.
@@ -147,10 +156,11 @@ def calcAngles(currStep):
     #this function will take the info in angList, and use it to calculate angle values based on the atom data in atomList.
     #called on angLIst once per timestep, though angList will contain all steps. may be problematic due to data sizes. 
     #TODO: modify this to decrease compexity based on what yoon wants. this dude needs to respond faster.
+    print("calcing Angles for: " + str(currStep) + " step.")
     for ang in angList:
         if (ang.timestep == currStep):
             ang.angle = cosLaw(atomList[ang.vertID-1],atomList[ang.end1ID-1],atomList[ang.end2ID-1])
-            angleVals.append(cosLaw(atomList[ang.vertID-1],atomList[ang.end1ID-1],atomList[ang.end2ID-1]))
+            angleVals.append(ang.angle)
 
         
 def plot(arr,currStep):
