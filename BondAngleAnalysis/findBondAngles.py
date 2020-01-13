@@ -3,6 +3,7 @@ import math
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import scipy.stats
+import seaborn as sns
 """
 Created on Tue Oct 29 15:45:57 2019
 
@@ -24,8 +25,8 @@ endType2 = 3
 
 
 currStep  = 4080000   #put the first step here
-finalStep = 4085000   #put the final Step here
-incrSize = -1   ## of timesteps inbetween each print in dump/ bond file
+finalStep = 4580000    #put the final Step here
+incrSize = 5000   ## of timesteps inbetween each print in dump/ bond file
 
 """end Constants"""
 
@@ -45,23 +46,24 @@ def main():
     #INSERT BOND FILES TO BONDS
     dump = open("dump_final.txt","r") 
     bonds = open("MD_bonds_final.reaxc", "r")
-    
-    # while(currStep < finalStep):
-    #     print("currStep: " + str(currStep))
-    #     fillAtomList(dump,currStep)
-    #     getAngleID(bonds,currStep)
-    #     calcAngles(currStep)
-    #     print("average value: " + str(sum(angleVals) / len(angleVals)))
-    #     currStep += incrSize
-    #     angList.clear()
-    # plot(angleVals,"sim")
-    print("currStep: " + str(currStep))
-    fillAtomList(dump,currStep)
-    getAngleID(bonds,currStep)
-    calcAngles(currStep)
-    print("average value: " + str(sum(angleVals) / len(angleVals)))
-    currStep += incrSize
-    angList.clear()
+    print("entering While loops")
+    while(currStep < finalStep):
+        print("currStep: " + str(currStep))
+        fillAtomList(dump,currStep)
+        getAngleID(bonds,currStep)
+        calcAngles(currStep)
+        print("average value: " + str(sum(angleVals) / len(angleVals)))
+        currStep += incrSize
+        angList.clear()
+    plot(angleVals,"sim")
+    print(len(angleVals))
+    # print("currStep: " + str(currStep))
+    # fillAtomList(dump,currStep)
+    # getAngleID(bonds,currStep)
+    # calcAngles(currStep)
+    # print("average value: " + str(sum(angleVals) / len(angleVals)))
+    # currStep += incrSize
+    # angList.clear()
 
 
 
@@ -164,19 +166,26 @@ def calcAngles(currStep):
 
         
 def plot(arr,currStep):
-    num_bins = 20
-    mu = 100 # mean of distribution
-    sigma = 15 # standard deviation of distribution
-    # the histogram of the data
-    n, bins, patches = plt.hist(arr, num_bins, normed=1, facecolor='blue', alpha=0.5)
+    # sns.distplot(arr, hist = False, kde = True, rug = True,
+    #          color = 'darkblue', 
+    #          kde_kws={'linewidth': 3},
+    #          rug_kws={'color': 'black'})
 
-    # add a 'best fit' line
-    y = mlab.normpdf(bins, mu, sigma)
-    plt.plot(bins, y, 'r--')
-    plt.xlabel('Angle')
-    plt.ylabel('Probability')
-    plt.title('Angle frequency\nTimestep: ' + str(currStep))
-    plt.savefig('plot ' + str(currStep) + '.png')
+    sns.distplot(arr, hist=True, kde=True, 
+             bins=int(180/5), color = 'darkblue', 
+             hist_kws={'edgecolor':'black'},
+             kde_kws={'linewidth': 4})
+    # x = ax.lines[0].get_xdata() # Get the x data of the distribution
+    # y = ax.lines[0].get_ydata() # Get the y data of the distribution
+    # maxid = np.argmax(y) # The id of the peak (maximum of y data)
+    # plt.plot(x[maxid],y[maxid], 'bo', ms=10)
+
+    # Plot formatting
+    plt.title("Density Plot: "  + currStep)
+    plt.xlabel('Angle (deg)')
+    plt.ylabel('Density')
+    plt.savefig("Plot-" + currStep + ".png")
+    plt.show()
            
 def plotNorm(arr,currStep):
     x_min = 0.0
