@@ -126,8 +126,10 @@ def main():
     coordinates = lmp1.gather_atoms("x",1,3)
     atomType = lmp1.gather_atoms("type",0,1)
     if(my_rank == 0):
-        getCandN(atomType)
+        getTypes(atomType)
         getNH()
+        if(CHtag):
+            getCH()
     for i in range(100):
         newfile = open("rest-ALLdata.txt",'a')
         #gets global quantity ntimestep (current timestep) in lammps.  more extractable stuff can be viewed in library.cpp
@@ -141,6 +143,8 @@ def main():
         if(my_rank == 0):
             coordFile.write("Time Step: " + str(currentStep) + "\n")
             search(natoms, atomType, coordinates,currentStep)
+            if(CHtag):
+                writeCH()
         MPI.COMM_WORLD.Barrier()
         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
         newfile.close() 
@@ -207,7 +211,11 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
     coordFile.write(str(currentStep) + " restID array (post removal): " + str(restID) + "\n")
 
     restfile = open("rest-data.txt",'w')
-    restfile.write(str(len(restID) * 3))        #number of groups we would apply force to 
+    
+    if (CHtag):
+        restfile.write(str(len(restID) * 3 + len(nonCH)))
+    else:
+        restfile.write(str(len(restID) * 3))        #number of groups we would apply force to 
     #newfile.write("\n" + "timestep: " + str(currentStep))
     newfile.write(str(len(restID) * 3))
     for i in range(0,len(restID)):
@@ -322,7 +330,7 @@ def excludeN(atomType,currStep,my_rank):
                                     exclude.append(int(wordList[0])) 
     f.close()
     
-def getCandN(atomType):
+def getTypes(atomType):
     #get the ID's of carbons and Nitrogens, for use in excludeN
     #gets nonactive C and H for restforce app.
     #stores as atom ID.
@@ -334,10 +342,12 @@ def getCandN(atomType):
             Nlist.append(i+1)
         elif (atomType[i] == Htype):
             Hlist.append(i+1)
-        elif(atomType[i] == 1):     #non active H
+        elif(atomType[i] == 4):     #non active H
             nonH.append(i+1)
         elif(atomType[i] == 1):     #non active C
             nonC.append(i+1)
+        elif (atomType[i] == Otype):
+            Olist.append(i+1)
 
 def validGroupNH(group):
     #this should see if the N and H are within the NHlist. 
@@ -375,10 +385,11 @@ def getNH():
     f.close() 
     difFile.close()
     
-def getCN():
-    # THis function gathers CN pairs. C can appear 3 times (?) and should have every H bonded to it listed
-    #this will be added to nonCN
+def getCH():
+    # THis function gathers CH pairs. C can appear 3 times (?) and should have every H bonded to it listed
+    #this will be added to nonCH
     #call once to pull data as ID
+    #part of applying forces to all C-H pairs.
     difFile = open("difFile.txt",'a')
     f = open("bonds.txt", "r")
     currStep = -1
@@ -401,9 +412,18 @@ def getCN():
                             if (add):
                                 nonCH.append([int(wordList[0]),int(wordList[3 + i])])
                                 #difFile.write("adding " + wordList[0] + " " + wordList[3+i]+ "\n")
-    difFile.write("Nlist: " + str(Nlist) + " within getNH\n")
-    difFile.write("NHlist: " + str(NHlist) + " within getNH\n")
+    difFile.write("CHlist: " + str(nonCH) + " within getNH\n")
     f.close() 
     difFile.close()
-                                    
+    
+def writeCH():
+    #will write all CH pairs to the rest-data file. meant to be toggleable. 
+    difFile = open("difFile.txt",'a')
+    restfile = open("rest-data.txt",'w')
+    for CH in nonCH:
+        difFile.write("\n" + str(CH[0]) + " " + str(CH[1]) + " " + str(1.1) + " " + str(200) + " " + str(.75) + " " + str(COdist[0]) + " " + str(COdist[1]))
+        restfile.write("\n" + str(CH[0]) + " " + str(CH[1]) + " " + str(1.1) + " " + str(200) + " " + str(.75) + " " + str(COdist[0]) + " " + str(COdist[1]))
+    difFile.close()
+    restfile.close()
+     
 main()
