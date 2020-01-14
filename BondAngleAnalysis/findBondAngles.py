@@ -31,7 +31,8 @@ incrSize = 5000   ## of timesteps inbetween each print in dump/ bond file
 """end Constants"""
 
 
-atomList = []   #this will hold all angle data types. will be in order, with the 0th atom being the atom with ID 1.
+atomList = []   #this will hold all angle data types. will be in order, with the 0th atom being the atom with ID 1. Per timestep value
+#should only contain atoms for the current timestep
 angleVals = [] #containts angle values in raw form, to be graphed
 angList = []  #this will hold all angle vals calculated below, in the format [[vertID,endID1,endID2, ANGLE],...] endID1 and 
 #clear angList every timestep.
@@ -56,6 +57,7 @@ def main():
         print("average value: " + str(sum(angleVals) / len(angleVals)))
         currStep += incrSize
         angList.clear()
+        atomList.clear()
         i+=1
         if(i>1):
             break
@@ -82,12 +84,13 @@ def fillAtomList(dump,currStep):
     startRead = False
     readBox = False
     step = False
+    flag = True
     dumpLine = dump.readlines()
-    print(len(dumpLine))
     for i in range(len(dumpLine)):
         dumpWord = dumpLine[i].split()
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):    #read timestep, if its correct continue. otherwise, break loop.
             print("found TIMESTEP header")
+            print(dumpWord)
             myStep = int(dumpLine[i+1].split()[0])
             if(myStep > currStep):
                 print("breaking at " + str(myStep))
@@ -95,9 +98,11 @@ def fillAtomList(dump,currStep):
             elif(myStep == currStep):
                 step = True
                 print("found correct Timestep: " + str(myStep))
+                print(dumpWord)
             #print("myStep : " + str(myStep) + " currStep: " + str(currStep))
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "BOX" and step and not readBox):    #UPDATING BOXDIM.  havent read box yet this step,and have read in the timestep.
             print("found BOX header.")
+            print(dumpWord)
             readBox = True
             currLine = i
             box1 = dumpLine[currLine + 1].split()   #getting three lines which contain X lo hi, y lo hi, z lo hi for boxdim.
@@ -107,11 +112,16 @@ def fillAtomList(dump,currStep):
             boxdim[1] = float(box2[1]) - float(box2[0])
             boxdim[2] = float(box3[1]) - float(box3[0])
             print("updating boxdim: " + str(boxdim))
-        if(dumpWord[0] == "ITEM:" and dumpWord[1] == "ATOMS"):    #when we see this header we want to skip this iteration, then continue on the next line, hence continue. 
+        if(dumpWord[0] == "ITEM:" and dumpWord[1] == "ATOMS" and readBox):    #when we see this header we want to skip this iteration, then continue on the next line, hence continue. 
             print("found ATOMS header")
+            print(dumpWord)
             startRead = True
             continue
         if (startRead and step):
+            if (flag):
+                print("loading atoms")
+                print(dumpWord)
+                flag = False
             atomList.append(Atom(float(dumpWord[3]), float(dumpWord[4]), float(dumpWord[5]), int(dumpWord[0]), int(dumpWord[1])))
             #this adds an atom object in atomList. x,y,z,ID,TYPE
             
