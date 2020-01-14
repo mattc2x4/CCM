@@ -21,13 +21,6 @@ vertexType = 1   #this is where you should put the type of the vertex
 endType1 = 3    #the other two types you want to calculate angle of
 endType2 = 3
 
-#O-Al-O
-
-
-currStep  = 4080000   #put the first step here
-finalStep = 4580000    #put the final Step here
-incrSize = 5000   ## of timesteps inbetween each print in dump/ bond file
-
 """end Constants"""
 
 
@@ -46,6 +39,13 @@ def main():
     #INSERT DUMP_FINAL FILES TO DUMP
     #INSERT BOND FILES TO BONDS
     #i = 0
+    dump = open("dump_final.lammps","r")
+    simData = getSimData(dump)
+    dump.close()
+    currStep = simData[0]
+    finalStep = simData[1]
+    incrSize = simData[2]
+    print (simData)
     while(currStep < finalStep):
         dump = open("dump_final.lammps","r")            #WRITE FILE NAMES HERE.
         bonds = open("MD_bonds_final.reaxc", "r")
@@ -65,14 +65,39 @@ def main():
         bonds.close()
     plot(angleVals,"sim")
     print(len(angleVals))
-    # print("currStep: " + str(currStep))
-    # fillAtomList(dump,currStep)
-    # getAngleID(bonds,currStep)
-    # calcAngles(currStep)
-    # print("average value: " + str(sum(angleVals) / len(angleVals)))
-    # currStep += incrSize
-    # angList.clear()
 
+
+def getSimData(dump):
+    #this function returns a list [firstFrame, finalFrame, stepSize]
+    print("getting Sim Data")
+    numStepFound = 0
+    step = []
+    dumpLine = dump.readlines()
+    i = 0
+    lastFound = False
+    j = len(dumpLine) - 1
+    while(numStepFound<2):
+        dumpWord = dumpLine[i].split()
+        if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):
+            numStepFound+=1
+            step.append(int(dumpLine[i+1].split()[0]))
+            print("timestep found")
+        i+=1
+
+    print("out of first while")
+    while(not lastFound):
+        dumpWord = dumpLine[j].split()
+        if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):
+            step.append(int(dumpLine[j+1].split()[0]))
+            lastFound = True
+            print("last found")
+        j-=1
+    stepSize = step[1] - step[0]
+    print(step)
+    print(stepSize)
+    del step[1]
+    step.append(stepSize)
+    return step
 
 
 def fillAtomList(dump,currStep):
