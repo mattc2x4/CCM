@@ -45,22 +45,22 @@ def main():
     #CONFIGURE FILES
     #INSERT DUMP_FINAL FILES TO DUMP
     #INSERT BOND FILES TO BONDS
-    i = 0
+    #i = 0
     while(currStep < finalStep):
-        dump = open("dump_final.lammps","r") 
+        dump = open("dump_final.lammps","r")            #WRITE FILE NAMES HERE.
         bonds = open("MD_bonds_final.reaxc", "r")
         print("\ncurrStep: " + str(currStep))
         fillAtomList(dump,currStep)
-        print("AtomList[0]: " + str(atomList[0]))
+        #print("AtomList[0]: " + str(atomList[0]))
         getAngleID(bonds,currStep)
         calcAngles(currStep)
         print("average value: " + str(sum(angleVals) / len(angleVals)))
         currStep += incrSize
         angList.clear()
         atomList.clear()
-        i+=1
-        if(i>1):
-            break
+        #i+=1
+        # if(i>1):
+        #     break
         dump.close()
         bonds.close()
     plot(angleVals,"sim")
@@ -89,20 +89,20 @@ def fillAtomList(dump,currStep):
     for i in range(len(dumpLine)):
         dumpWord = dumpLine[i].split()
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):    #read timestep, if its correct continue. otherwise, break loop.
-            print("found TIMESTEP header")
-            print(dumpWord)
+            # print("found TIMESTEP header")
+            # print(dumpWord)
             myStep = int(dumpLine[i+1].split()[0])
             if(myStep > currStep):
-                print("breaking at " + str(myStep))
+                # print("breaking at " + str(myStep))
                 break
             elif(myStep == currStep):
                 step = True
-                print("found correct Timestep: " + str(myStep))
-                print(dumpWord)
+                # print("found correct Timestep: " + str(myStep))
+                # print(dumpWord)
             #print("myStep : " + str(myStep) + " currStep: " + str(currStep))
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "BOX" and step and not readBox):    #UPDATING BOXDIM.  havent read box yet this step,and have read in the timestep.
-            print("found BOX header.")
-            print(dumpWord)
+            # print("found BOX header.")
+            # print(dumpWord)
             readBox = True
             currLine = i
             box1 = dumpLine[currLine + 1].split()   #getting three lines which contain X lo hi, y lo hi, z lo hi for boxdim.
@@ -113,14 +113,14 @@ def fillAtomList(dump,currStep):
             boxdim[2] = float(box3[1]) - float(box3[0])
             print("updating boxdim: " + str(boxdim))
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "ATOMS" and readBox):    #when we see this header we want to skip this iteration, then continue on the next line, hence continue. 
-            print("found ATOMS header")
-            print(dumpWord)
+            # print("found ATOMS header")
+            # print(dumpWord)
             startRead = True
             continue
         if (startRead and step):
             if (flag):
                 print("loading atoms")
-                print(dumpWord)
+                # print(dumpWord)
                 flag = False
             atomList.append(Atom(float(dumpWord[3]), float(dumpWord[4]), float(dumpWord[5]), int(dumpWord[0]), int(dumpWord[1])))
             #this adds an atom object in atomList. x,y,z,ID,TYPE
@@ -217,7 +217,7 @@ def plot(arr,currStep):
     plt.xlabel('Angle (deg)')
     plt.ylabel('Density')
     plt.savefig("Plot-" + currStep + ".png")
-    #plt.show()
+    plt.show()
            
 def plotNorm(arr,currStep):
     x_min = 0.0
