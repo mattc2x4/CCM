@@ -37,24 +37,30 @@ angList = []  #this will hold all angle vals calculated below, in the format [[v
 #clear angList every timestep.
 #end2ID interchangable locations. 
 
-boxdim = [20,20,20]     #[x,y,z] lengths
+boxdim = [0,0,0]     #[x,y,z] lengths
 
 def main():
     currStep  = 4080000
     #CONFIGURE FILES
     #INSERT DUMP_FINAL FILES TO DUMP
     #INSERT BOND FILES TO BONDS
-    dump = open("dump_final.txt","r") 
-    bonds = open("MD_bonds_final.reaxc", "r")
-    print("entering While loops")
+    i = 0
     while(currStep < finalStep):
-        print("currStep: " + str(currStep))
+        dump = open("dump_final.lammps","r") 
+        bonds = open("MD_bonds_final.reaxc", "r")
+        print("\ncurrStep: " + str(currStep))
         fillAtomList(dump,currStep)
+        print("AtomList[0]: " + str(atomList[0]))
         getAngleID(bonds,currStep)
         calcAngles(currStep)
         print("average value: " + str(sum(angleVals) / len(angleVals)))
         currStep += incrSize
         angList.clear()
+        i+=1
+        if(i>1):
+            break
+        dump.close()
+        bonds.close()
     plot(angleVals,"sim")
     print(len(angleVals))
     # print("currStep: " + str(currStep))
@@ -71,28 +77,44 @@ def fillAtomList(dump,currStep):
     #read in the atom data from timestep "currStep"
     #finds meantions of timestep in header. compares with input (master) step. if it is greater than, breaks loop, allowing
     #main code to run instead. when it finds the correct 
-    #i am sorry to all my computerscience teachers, but i have to use continue and break because of this file format.
+    #updates Boxdim, which changes the box dimensions. this affects finding distance with periodic boundaries. 
     print("filling atom list for " + str(currStep) + " step.")
     startRead = False
+    readBox = False
+    step = False
     dumpLine = dump.readlines()
+    print(len(dumpLine))
     for i in range(len(dumpLine)):
         dumpWord = dumpLine[i].split()
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):    #read timestep, if its correct continue. otherwise, break loop.
+            print("found TIMESTEP header")
             myStep = int(dumpLine[i+1].split()[0])
-            #print(myStep)
             if(myStep > currStep):
-                #print("breaking at " + str(myStep))
+                print("breaking at " + str(myStep))
                 break
             elif(myStep == currStep):
                 step = True
+                print("found correct Timestep: " + str(myStep))
+            #print("myStep : " + str(myStep) + " currStep: " + str(currStep))
+        if(dumpWord[0] == "ITEM:" and dumpWord[1] == "BOX" and step and not readBox):    #UPDATING BOXDIM.  havent read box yet this step,and have read in the timestep.
+            print("found BOX header.")
+            readBox = True
+            currLine = i
+            box1 = dumpLine[currLine + 1].split()   #getting three lines which contain X lo hi, y lo hi, z lo hi for boxdim.
+            box2 = dumpLine[currLine + 2].split()   #Y
+            box3 = dumpLine[currLine + 3].split()   #Z
+            boxdim[0] = float(box1[1]) - float(box1[0])
+            boxdim[1] = float(box2[1]) - float(box2[0])
+            boxdim[2] = float(box3[1]) - float(box3[0])
+            print("updating boxdim: " + str(boxdim))
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "ATOMS"):    #when we see this header we want to skip this iteration, then continue on the next line, hence continue. 
+            print("found ATOMS header")
             startRead = True
             continue
         if (startRead and step):
             atomList.append(Atom(float(dumpWord[3]), float(dumpWord[4]), float(dumpWord[5]), int(dumpWord[0]), int(dumpWord[1])))
             #this adds an atom object in atomList. x,y,z,ID,TYPE
             
-    
 
 def distance(atom1, atom2):
     # this function is used to calculate the distance between 2 atoms.
@@ -185,7 +207,7 @@ def plot(arr,currStep):
     plt.xlabel('Angle (deg)')
     plt.ylabel('Density')
     plt.savefig("Plot-" + currStep + ".png")
-    plt.show()
+    #plt.show()
            
 def plotNorm(arr,currStep):
     x_min = 0.0
@@ -220,7 +242,7 @@ class Atom:
         self.ID = ID
         self.TYPE = TYPE
     def __str__(self):      #printing atom object will yield the following
-        return ("Atom ID: " + str(self.ID) + "\n" + "TYPE: " + str(self.TYPE) + "\n" + "X: " + str(self.x) + "\n" + "Y: " + str(self.y) + "\n" + "Z: " + str(self.z) + "\n")
+        return ("Atom ID: " + str(self.ID) + "\n" + "TYPE: " + str(self.TYPE) + "\n" + "X: " + str(self.x) + "\n" + "Y: " + str(self.y) + "\n" + "Z: " + str(self.z))
 
 class Angle:
     #this is an angle data structure. This is used to store each angle's data as seen below.
