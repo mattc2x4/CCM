@@ -17,7 +17,7 @@ Created on Tue Oct 29 15:45:57 2019
 #atom type 3 = O
 #atom type 4 = Si
 
-vertexType = 1   #this is where you should put the type of the vertex
+vertexType = 1   #VERTEX AND END TYPES HERE.
 endType1 = 3    #the other two types you want to calculate angle of
 endType2 = 3
 
@@ -34,7 +34,6 @@ angList = []  #this will hold all angle vals calculated below, in the format [[v
 boxdim = [0,0,0]     #[x,y,z] lengths
 
 def main():
-    currStep  = 4080000
     #CONFIGURE FILES
     #INSERT DUMP_FINAL FILES TO DUMP
     #INSERT BOND FILES TO BONDS
@@ -267,6 +266,51 @@ def plotNorm(arr,currStep):
 
     plt.savefig("normal_distribution.png")
     plt.show()
+
+def markAtoms(func, dump,val,currStep):
+    #this function takes func: which should be a function that evaluates to a boolean, and should take an angle object as an input
+    #to be called once per timestep. it should copy lines that don't evauluate to true into the file, and for lines that do evaluate to true it should copy lines, 
+    # and add a column with some value. 
+    #this should mark all atoms in the angle, for this specific timestep. 
+    markDict = {}       #dictionary containing the ID of all atoms in angle that satisfies func condition. 
+    markedFile = open("marked_dump.lammps", "a")
+    for ang in angList:
+        if (func(ang)):
+            markDict[ang.vertID] = 1
+            markDict[ang.end1ID] = 1
+            markDict[ang.end2ID] = 1
+    dumpLine = dump.readlines()
+    for i in range(len(dumpLine)):
+        dumpWord = dumpLine[i].split()
+        if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):    #read timestep, if its correct continue. otherwise, break loop.
+            myStep = int(dumpLine[i+1].split()[0])
+            if(myStep > currStep):
+                # print("breaking at " + str(myStep))
+                break
+            elif(myStep == currStep):
+                step = True
+                markedFile.write(dumpLine[i])
+                markedFile.write(dumpLine[i+1])
+        if(step):
+            if (dumpWord[0].isdigit()):
+                if(dumpWord[0] in markDict):
+                    markedFile.write(dumpLine[i] + " " + str(val))
+
+            else:
+                markedFile.write(dumpLine[i])
+
+
+
+    
+    
+
+def func(ang):
+    #this is the function that users should modify. it takes in one angle object, and makes some comparison with angle fields, to return a boolean.
+    #the example code included will mark any atom that is below 60 degrees.
+    if(ang.angle < 60):
+        return True
+    else:
+        return False
 
 class Atom:
     #this is an atom data structure. This is used to store each atom's x,y,z vals, Id, and Type. default values are -1.
