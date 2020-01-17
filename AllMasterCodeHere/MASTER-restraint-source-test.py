@@ -109,7 +109,7 @@ def main():
     from lammps import lammps
 
     if my_rank == 0:
-        print "begin python script"
+        print ("begin python script")
 
     # user input; global variables
     lammpsScript = "in.accelerated-test.txt"
