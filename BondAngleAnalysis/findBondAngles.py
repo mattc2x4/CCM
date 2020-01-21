@@ -54,6 +54,7 @@ def main():
         getAngleID(bonds,currStep)
         calcAngles(currStep)
         print("average value: " + str(sum(angleVals) / len(angleVals)))
+        markAtoms(func, dump,"AHHHH", currStep)
         currStep += incrSize
         angList.clear()
         atomList.clear()
