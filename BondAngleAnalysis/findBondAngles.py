@@ -27,7 +27,7 @@ endType2 = 3
 atomList = []   #this will hold all angle data types. will be in order, with the 0th atom being the atom with ID 1. Per timestep value
 #should only contain atoms for the current timestep
 angleVals = [] #containts angle values in raw form, to be graphed
-angList = []  #this will hold all angle vals calculated below, in the format [[vertID,endID1,endID2, ANGLE],...] endID1 and 
+angList = []  #this will hold all angle objects. 
 #clear angList every timestep.
 #end2ID interchangable locations. 
 
