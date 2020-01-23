@@ -36,13 +36,18 @@ def main():
     v = .01
     numSteps = 3000
     for i in range(numSteps):
+        coordinates = lmp1.gather_atoms("x",1,3)
         if mpi_rank == 0:
             debug("Step: " + str(i) + "\n")
-        lmp1.command("fix 102 top move linear 0.0 0.0 0.01 units box")
-        coordinates = lmp1.gather_atoms("x",1,3)
+            if (numSteps%1000):
+                debug("z Coord of atom ID PRE: " + str(mobileAtoms[0]) + " " + str(coordinates[3*mobileAtoms[0]+2]) + "\nCurrL: " + str(currL) + " v: " +  str(v))
+        lmp1.command("fix 102 top move linear 0.0 0.0 " + str(v) + " units box")
         stretchMobile(coordinates, mobileAtoms,dt,v,currL)
         currL = updateL(currL, v,dt)
         lmp1.scatter_atoms("x",1,3,coordinates)
+        if mpi_rank == 0:
+            if (numSteps%1000):
+                debug("z Coord of atom ID POST: " + str(mobileAtoms[0]) + " : " + str(coordinates[3*mobileAtoms[0]+2]) + "\nUPDATED L: " + str(currL) + " v: " +  str(v))
         lmp1.command("fix 60 mobile nvt temp 300.0 300.0 200")
         lmp1.command("run 1")
     lmp1.command("unfix 60")
@@ -57,7 +62,7 @@ def stretchMobile(coordinates, mobileAtoms,dt,v,L):
     debug("stretching\n")
     for ID in mobileAtoms:      #go throught the list of atoms in the mobile region
         i = ID -1       #find the index of the atom in the coordinates array
-        coordinates[3*i+2] = coordinates[3*i+2] + (dt*v)/L      #access the z value for the ith atom (x[3*i+2]), and modify based on formula from sanjib
+        coordinates[3*i+2] = coordinates[3*i+2] * (dt*v)/L      #access the z value for the ith atom (x[3*i+2]), and modify based on formula from sanjib
 
 
 def updateL(pastL,v,dt):
@@ -102,7 +107,7 @@ def getSimData(x,numAtoms,mobileAtoms):
     for i in range(numAtoms):
         if(mobileBottom <= x[3*i+2] <= mobileTop):
             mobileAtoms.append(i+1)
-    debug("mobile Atoms: " + str(mobileAtoms) + "\n")
+    debug("mobile Atoms: " + str(mobileAtoms) + "\n" + " Number of MobileAtoms: " + str(len(mobileAtoms)))
     return mobileTop - mobileBottom,dt, numSteps
 
 #
