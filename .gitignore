@@ -5,3 +5,4 @@ BondAngleAnalysis/MD_bonds_final.reaxc
 BondAngleAnalysis/*.png
 AllMasterCodeHere/bonds.txt
 
+BondAngleAnalysis/findBondAngles.txt

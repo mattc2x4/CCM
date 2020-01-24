@@ -37,19 +37,19 @@ def main():
     #CONFIGURE FILES
     #INSERT DUMP_FINAL FILES TO DUMP
     #INSERT BOND FILES TO BONDS
-    #i = 0
-    dump = open("dump_final.lammps","r")
+    i = 0
+    dump = "dump_final.lammps"      #WRITE FILE NAMES HERE
+    bonds = "MD_bonds_final.reaxc"
     simData = getSimData(dump)
-    dump.close()
     currStep = simData[0]
     finalStep = simData[1]
+    #print(currStep)
+    #print(finalStep)
     incrSize = simData[2]
     print (simData)
     while(currStep < finalStep):
-        dump = open("dump_final.lammps","r")            #WRITE FILE NAMES HERE.
-        bonds = open("MD_bonds_final.reaxc", "r")
         print("\ncurrStep: " + str(currStep))
-        fillAtomList(dump,currStep)
+        fillAtomList(dump, currStep)
         #print("AtomList[0]: " + str(atomList[0]))
         getAngleID(bonds,currStep)
         calcAngles(currStep)
@@ -58,11 +58,9 @@ def main():
         currStep += incrSize
         angList.clear()
         atomList.clear()
-        #i+=1
-        # if(i>1):
-        #     break
-        dump.close()
-        bonds.close()
+        i+=1
+        if(i>1):
+            break
     plot(angleVals,"sim")
     print(len(angleVals))
 
@@ -70,6 +68,7 @@ def main():
 def getSimData(dump):
     #this function returns a list [firstFrame, finalFrame, stepSize]
     print("getting Sim Data")
+    dump = open(dump,"r")
     numStepFound = 0
     step = []
     dumpLine = dump.readlines()
@@ -81,10 +80,10 @@ def getSimData(dump):
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):
             numStepFound+=1
             step.append(int(dumpLine[i+1].split()[0]))
-            print("timestep found")
+            #print("timestep found")
         i+=1
 
-    print("out of first while")
+    #print("out of first while")
     while(not lastFound):
         dumpWord = dumpLine[j].split()
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):
@@ -93,10 +92,11 @@ def getSimData(dump):
             print("last found")
         j-=1
     stepSize = step[1] - step[0]
-    print(step)
-    print(stepSize)
+    #print(step)
+    #print(stepSize)
     del step[1]
     step.append(stepSize)
+    dump.close()
     return step
 
 
@@ -110,6 +110,7 @@ def fillAtomList(dump,currStep):
     readBox = False
     step = False
     flag = True
+    dump = open(dump,"r")
     dumpLine = dump.readlines()
     for i in range(len(dumpLine)):
         dumpWord = dumpLine[i].split()
@@ -149,6 +150,7 @@ def fillAtomList(dump,currStep):
                 flag = False
             atomList.append(Atom(float(dumpWord[3]), float(dumpWord[4]), float(dumpWord[5]), int(dumpWord[0]), int(dumpWord[1])))
             #this adds an atom object in atomList. x,y,z,ID,TYPE
+    dump.close()
             
 
 def distance(atom1, atom2):
@@ -187,15 +189,20 @@ def getAngleID(bonds,currStep):
         endCount = 0
         if (len(wordList) > 2):
             if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # this checks timestep. if timestep in file matches input, read lines.upon encountering another, break loop.
+                print("\tCurrStep: " + str(currStep) + " Step found: " + wordList[2])
                 if(currStep == int(wordList[2])):
+                    print("\tfound timestep")
                     read = True
+                elif(currStep > int(wordList[2])):
+                    continue
                 else:
-                    #print("breaking\n")
+                    print("\tbreaking\n")
                     break
             if (read == True and wordList[0] != '#'):
                 #print(str(atomList[int(wordList[0]) - 1].TYPE) + str(atomList[int(wordList[0]) - 1].TYPE == vertexType))
                 if (atomList[int(wordList[0]) - 1].TYPE == vertexType):
                     #access the corresponding atom data. subtract one to translate to index. Make sure ID is correct.  and int(wordList[0]) == atomList[int(wordList[0]) - 1].ID
+                    #print("\tfound vertex")
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
                         try: 
@@ -204,12 +211,13 @@ def getAngleID(bonds,currStep):
                             print("Files Incomplete: an atom exists in bonds file that does not exist in dump this atom is: " + str(int(wordList[3 + i])))
                         if (atomList[int(wordList[3 + i]) - 1].TYPE  == endType1 or atomList[int(wordList[3 + i]) - 1].TYPE == endType2):      
                            endCount+=1
-                           #print("found end")
+                           #print("\tfound end")
                            if (endCount == 1):     #this is the first one we found, store in temp
                                 firstEndID = int(wordList[3+i])
                            elif(endCount == 2):    #this is the second one we found, add time, reset counter.
                                 angList.append(Angle(int(wordList[0]),firstEndID,int(wordList[3+i]),currStep,-1))
                                 endCount = 0
+    print("\t" + str(len(angList)))
 
 def calcAngles(currStep):
     #this function will take the info in angList, and use it to calculate angle values based on the atom data in atomList.
@@ -274,31 +282,43 @@ def markAtoms(func, dump,val,currStep):
     # and add a column with some value. 
     #this should mark all atoms in the angle, for this specific timestep. 
     markDict = {}       #dictionary containing the ID of all atoms in angle that satisfies func condition. 
-    markedFile = open("marked_dump.lammps", "a")
+    markedFile = open("marked_dump.lammps", "w+")
+    dump = open(dump,"r")
+    print("Marking")
     for ang in angList:
+        #print("checking: " + str(ang))
         if (func(ang)):
+            #print("ADDING")
             markDict[ang.vertID] = 1
             markDict[ang.end1ID] = 1
             markDict[ang.end2ID] = 1
+    #print(str(markDict))
     dumpLine = dump.readlines()
+    print(len(dumpLine))
     for i in range(len(dumpLine)):
         dumpWord = dumpLine[i].split()
+        print("DUMPWORD =" + dumpWord)
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):    #read timestep, if its correct continue. otherwise, break loop.
             myStep = int(dumpLine[i+1].split()[0])
+            print("\tfound timestep header")
             if(myStep > currStep):
-                # print("breaking at " + str(myStep))
+                print("MARKING breaking at " + str(myStep))
                 break
             elif(myStep == currStep):
+                print("step found MARKING")
                 step = True
                 markedFile.write(dumpLine[i])
                 markedFile.write(dumpLine[i+1])
         if(step):
-            if (dumpWord[0].isdigit()):
-                if(dumpWord[0] in markDict):
-                    markedFile.write(dumpLine[i] + " " + str(val))
-
+            line = dumpLine[i].rstrip('\n')
+            if(int(dumpWord[0]) in markDict):
+                print("writing")
+                line += val
+                print(line, file=markedFile)
             else:
-                markedFile.write(dumpLine[i])
+                print(line, file=markedFile)
+    dump.close()
+    markedFile.close()
 
 
 
@@ -308,7 +328,7 @@ def markAtoms(func, dump,val,currStep):
 def func(ang):
     #this is the function that users should modify. it takes in one angle object, and makes some comparison with angle fields, to return a boolean.
     #the example code included will mark any atom that is below 60 degrees.
-    if(ang.angle < 60):
+    if(ang.angle < 90):
         return True
     else:
         return False

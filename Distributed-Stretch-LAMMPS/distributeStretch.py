@@ -32,6 +32,7 @@ def main():
     lmp1.command("run 0")
     natoms = lmp1.get_natoms()
     coordinates = lmp1.gather_atoms("x",1,3)
+    lmp1.command("thermo 1000")
     (currL, dt, numSteps) = getSimData(coordinates,natoms,mobileAtoms)
     v = .01
     numSteps = 3000
@@ -62,7 +63,7 @@ def stretchMobile(coordinates, mobileAtoms,dt,v,L):
     debug("stretching\n")
     for ID in mobileAtoms:      #go throught the list of atoms in the mobile region
         i = ID -1       #find the index of the atom in the coordinates array
-        coordinates[3*i+2] = coordinates[3*i+2] * (dt*v)/L      #access the z value for the ith atom (x[3*i+2]), and modify based on formula from sanjib
+        coordinates[3*i+2] = coordinates[3*i+2] + ((coordinates[3*i+2]-11.5) * (dt*v)/L)     #access the z value for the ith atom (x[3*i+2]), and modify based on formula from sanjib
 
 
 def updateL(pastL,v,dt):
