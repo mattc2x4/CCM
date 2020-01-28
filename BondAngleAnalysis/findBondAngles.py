@@ -37,7 +37,7 @@ def main():
     #CONFIGURE FILES
     #INSERT DUMP_FINAL FILES TO DUMP
     #INSERT BOND FILES TO BONDS
-    i = 0
+    #i = 0
     dump = "dump_final.lammps"      #WRITE FILE NAMES HERE
     bonds = "MD_bonds_final.reaxc"
     simData = getSimData(dump)
@@ -58,9 +58,9 @@ def main():
         currStep += incrSize
         angList.clear()
         atomList.clear()
-        i+=1
-        if(i>1):
-            break
+        # i+=1
+        # if(i>1):
+        #     break
     plot(angleVals,"sim")
     print(len(angleVals))
 
@@ -182,6 +182,7 @@ def getAngleID(bonds,currStep):
     #will be modified to calculate the angle later. 
     #call once to pull data as ID
     print("getting angles for " + str(currStep) + " step.")
+    bonds = open(bonds, "r")
     lineFile = bonds.readlines()
     read = False
     for line in lineFile:       #loops through each line of the file
@@ -189,7 +190,7 @@ def getAngleID(bonds,currStep):
         endCount = 0
         if (len(wordList) > 2):
             if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # this checks timestep. if timestep in file matches input, read lines.upon encountering another, break loop.
-                print("\tCurrStep: " + str(currStep) + " Step found: " + wordList[2])
+                #print("\tCurrStep: " + str(currStep) + " Step found: " + wordList[2])
                 if(currStep == int(wordList[2])):
                     print("\tfound timestep")
                     read = True
@@ -218,6 +219,7 @@ def getAngleID(bonds,currStep):
                                 angList.append(Angle(int(wordList[0]),firstEndID,int(wordList[3+i]),currStep,-1))
                                 endCount = 0
     print("\t" + str(len(angList)))
+    bonds.close()
 
 def calcAngles(currStep):
     #this function will take the info in angList, and use it to calculate angle values based on the atom data in atomList.
@@ -282,9 +284,11 @@ def markAtoms(func, dump,val,currStep):
     # and add a column with some value. 
     #this should mark all atoms in the angle, for this specific timestep. 
     markDict = {}       #dictionary containing the ID of all atoms in angle that satisfies func condition. 
-    markedFile = open("marked_dump.lammps", "w+")
+    markedFile = open("marked_dump.lammps", "a")
     dump = open(dump,"r")
     print("Marking")
+    step = False
+    atomHeaderSeen = False
     for ang in angList:
         #print("checking: " + str(ang))
         if (func(ang)):
@@ -294,29 +298,33 @@ def markAtoms(func, dump,val,currStep):
             markDict[ang.end2ID] = 1
     #print(str(markDict))
     dumpLine = dump.readlines()
-    print(len(dumpLine))
     for i in range(len(dumpLine)):
         dumpWord = dumpLine[i].split()
-        print("DUMPWORD =" + dumpWord)
+        #print("DUMPWORD =" + dumpWord)
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):    #read timestep, if its correct continue. otherwise, break loop.
             myStep = int(dumpLine[i+1].split()[0])
-            print("\tfound timestep header")
+            #print("\tfound timestep header")
             if(myStep > currStep):
-                print("MARKING breaking at " + str(myStep))
+                #print("\tMARKING breaking at " + str(myStep))
                 break
             elif(myStep == currStep):
-                print("step found MARKING")
+                #print("\tstep found MARKING")
                 step = True
                 markedFile.write(dumpLine[i])
                 markedFile.write(dumpLine[i+1])
         if(step):
-            line = dumpLine[i].rstrip('\n')
-            if(int(dumpWord[0]) in markDict):
-                print("writing")
-                line += val
-                print(line, file=markedFile)
-            else:
-                print(line, file=markedFile)
+            if(dumpWord[0] == "ITEM:" and dumpWord[1] == "ATOMS"):
+                atomHeaderSeen = True
+                #print("\tatomHeaderSeen")
+                continue
+            if(atomHeaderSeen):
+                line = dumpLine[i].rstrip('\n')
+                if(int(dumpWord[0]) in markDict):
+                    #print("writing")
+                    line += val
+                    print(line, file=markedFile)
+                else:
+                    print(line, file=markedFile)
     dump.close()
     markedFile.close()
 
