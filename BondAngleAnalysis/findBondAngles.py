@@ -38,7 +38,7 @@ def main():
     #INSERT DUMP_FINAL FILES TO DUMP
     #INSERT BOND FILES TO BONDS
     i = 0
-    dump = "dump_final.lammps"      #WRITE FILE NAMES HERE
+    dump = "dump_final.lammps"      #WRITE FILE NAMES HERE  store file names as strings, to be opened and closed by each subroutine. 
     bonds = "MD_bonds_final.reaxc"
     simData = getSimData(dump)
     currStep = simData[0]
