@@ -40,6 +40,13 @@ def main():
     #i = 0
     dump = "dump_final.lammps"      #WRITE FILE NAMES HERE  store file names as strings, to be opened and closed by each subroutine. 
     bonds = "MD_bonds_final.reaxc"
+    markedXYZ = "marked_dump.xyz"
+    markedlammps = "marked_dump.lammps"
+    analyzeSimAndMark(dump,bonds, markedXYZ,markedlammps)
+ 
+
+def analyzeSimAndMark(dump, bonds, markedXYZ, markedlammps):
+    #TODO: add different file name spots and make clear which are which, like for xyz translation and marked file names. 
     simData = getSimData(dump)
     currStep = simData[0]
     finalStep = simData[1]
@@ -49,22 +56,23 @@ def main():
     # i = 0
     print (simData)
     while(currStep <= finalStep):
-        lammpsToXYZ("marked_dump.lammps", "marked_dump.xyz", {1:"Al", 2:"Mg", 3:"O", 4:"Si"})
-    #     print("\ncurrStep: " + str(currStep))
-    #     fillAtomList(dump, currStep)
-    #     #print("AtomList[0]: " + str(atomList[0]))
-    #     getAngleID(bonds,currStep)
-    #     calcAngles(currStep)
-    #     print("average value: " + str(sum(angleVals) / len(angleVals)))
-    #     markAtomsDumpAll(func, dump, currStep)
-    #     currStep += incrSize
-    #     angList.clear()
-    #     atomList.clear()
-    #     # i+=1
-    #     # if(i>1):
-    #     #     break
-    # plot(angleVals,"sim")
-    # print(len(angleVals))
+        print()
+        print("\ncurrStep: " + str(currStep))
+        fillAtomList(dump, currStep)
+        #print("AtomList[0]: " + str(atomList[0]))
+        getAngleID(bonds,currStep)
+        calcAngles(currStep)
+        print("average value: " + str(sum(angleVals) / len(angleVals)))
+        markAtomsDumpAll(func, dump, markedlammps, currStep)
+        currStep += incrSize
+        angList.clear()
+        atomList.clear()
+        # i+=1
+        # if(i>1):
+        #     break
+    plot(angleVals,"sim")
+    print(len(angleVals))
+    lammpsToXYZ(markedlammps, markedXYZ, {1:"Al", 2:"Mg", 3:"O", 4:"Si"})
 
 
 def getSimData(dump):
@@ -280,14 +288,14 @@ def plotNorm(arr,currStep):
     plt.savefig("normal_distribution.png")
     plt.show()
 
-def markAtomsDumpAll(func, dump, currStep):
+def markAtomsDumpAll(func, dump, markedlammps, currStep):
     #this function takes func: which should be a function that evaluates to a boolean, and should take an angle object as an input
     #to be called once per timestep. it should copy lines that don't evauluate to true into the file, and for lines that do evaluate to true it should copy lines, 
     # and add a column with some value. 
     #this should mark all atoms in the angle, for this specific timestep. 
     markDict = {}       #dictionary containing the ID of all atoms in angle that satisfies func condition.
     marks = {1:10,2:20,3:30,4:40}          #if the angle fits the criteria described in func, it will be marked with the value here. Otherwise, it will be marked by its type.  
-    markedFile = open("marked_dump.lammps", "a")
+    markedFile = open(markedlammps, "a")
     dump = open(dump,"r")
     print("Marking")
     step = False
@@ -342,22 +350,38 @@ def lammpsToXYZ(inputFile, outputFile,transDict):
     #takes input of strings for names of input and output files, and a dictionary described below. 
     #trans Dict should be in the following format:
     #transDict = {1:Al,2:O} where 1 is the type that corresponds to Aluminum atoms. etc, fill for all types available. 
+    print("converting lammps to xyz")
     inp = open(inputFile,"r")
     out = open(outputFile,"w")
     inpLine = inp.readlines()
+    xlen = 0
+    ylen = 0
+    zlen = 0
     for i in range(len(inpLine)):
-        line = inpLine[i].rstrip('\n')
         wordList = inpLine[i].split()
         if(len(wordList) >= 2):
             if (wordList[0] == "ITEM:"):
                 if(wordList[1] == "TIMESTEP"):
                     myStep = int(inpLine[i+1].split()[0])
-                    print("Atoms. Timestep: " + str(myStep),out)
                 elif(wordList[1] == "NUMBER" and wordList[3] == "ATOMS"):
                     numAtoms = int(inpLine[i+1].split()[0])
-                    print(str(numAtoms), out)
+                elif(wordList[1] == "BOX"):
+                    box1 = inpLine[i + 1].split()   #getting three lines which contain X lo hi, y lo hi, z lo hi for boxdim.
+                    box2 = inpLine[i + 2].split()   #Y
+                    box3 = inpLine[i + 3].split()   #Z
+                    xlen = round(float(box1[1]) - float(box1[0]),6)
+                    ylen = round(float(box2[1]) - float(box2[0]),6)
+                    zlen = round(float(box3[1]) - float(box3[0]),6)
+                    print(str(numAtoms), file=out)
+                    print("Atoms. Timestep: " + str(myStep) + "          " + str(xlen) + "  " + str(ylen) + "  " + str(zlen) + "  90.000000  90.000000  90.000000",file=out) #type cell system angles here
             elif(len(wordList) > 5):
-                print(line, out)
+                xyzline = transDict[int(wordList[1])] + "  " + str(wordList[3]) + "  " + str(wordList[4]) + "  " + str(wordList[5]) + "  "
+                for mark in range(6,len(wordList)):
+                    xyzline += wordList[mark] + "  "
+                print(xyzline, file=out)
+    inp.close()
+    out.close()
+    print("\tDone.")
 
 
 
