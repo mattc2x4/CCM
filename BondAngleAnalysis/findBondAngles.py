@@ -46,15 +46,16 @@ def main():
     #print(currStep)
     #print(finalStep)
     incrSize = simData[2]
+    # i = 0
     print (simData)
-    while(currStep < finalStep):
+    while(currStep <= finalStep):
         print("\ncurrStep: " + str(currStep))
         fillAtomList(dump, currStep)
         #print("AtomList[0]: " + str(atomList[0]))
         getAngleID(bonds,currStep)
         calcAngles(currStep)
         print("average value: " + str(sum(angleVals) / len(angleVals)))
-        markAtoms(func, dump,"AHHHH", currStep)
+        markAtomsDumpAll(func, dump, currStep)
         currStep += incrSize
         angList.clear()
         atomList.clear()
@@ -278,12 +279,13 @@ def plotNorm(arr,currStep):
     plt.savefig("normal_distribution.png")
     plt.show()
 
-def markAtoms(func, dump,val,currStep):
+def markAtomsDumpAll(func, dump, currStep):
     #this function takes func: which should be a function that evaluates to a boolean, and should take an angle object as an input
     #to be called once per timestep. it should copy lines that don't evauluate to true into the file, and for lines that do evaluate to true it should copy lines, 
     # and add a column with some value. 
     #this should mark all atoms in the angle, for this specific timestep. 
-    markDict = {}       #dictionary containing the ID of all atoms in angle that satisfies func condition. 
+    markDict = {}       #dictionary containing the ID of all atoms in angle that satisfies func condition.
+    marks = {1:10,2:20,3:30,4:40}          #if the angle fits the criteria described in func, it will be marked with the value here. Otherwise, it will be marked by its type.  
     markedFile = open("marked_dump.lammps", "a")
     dump = open(dump,"r")
     print("Marking")
@@ -311,20 +313,27 @@ def markAtoms(func, dump,val,currStep):
                 #print("\tstep found MARKING")
                 step = True
                 markedFile.write(dumpLine[i])
-                markedFile.write(dumpLine[i+1])
+                continue
         if(step):
             if(dumpWord[0] == "ITEM:" and dumpWord[1] == "ATOMS"):
                 atomHeaderSeen = True
-                #print("\tatomHeaderSeen")
+                markedFile.write(dumpLine[i] + " mark1")
                 continue
+                #print("\tatomHeaderSeen")
             if(atomHeaderSeen):
                 line = dumpLine[i].rstrip('\n')
+                splitLine = line.split()
+                #print(line)
                 if(int(dumpWord[0]) in markDict):
                     #print("writing")
-                    line += val
+                    line += str(marks[int(splitLine[1])])
                     print(line, file=markedFile)
                 else:
+                    line += str(splitLine[1])
                     print(line, file=markedFile)
+            else:
+                line = dumpLine[i].rstrip('\n')
+                print(line, file=markedFile)
     dump.close()
     markedFile.close()
 
