@@ -49,21 +49,22 @@ def main():
     # i = 0
     print (simData)
     while(currStep <= finalStep):
-        print("\ncurrStep: " + str(currStep))
-        fillAtomList(dump, currStep)
-        #print("AtomList[0]: " + str(atomList[0]))
-        getAngleID(bonds,currStep)
-        calcAngles(currStep)
-        print("average value: " + str(sum(angleVals) / len(angleVals)))
-        markAtomsDumpAll(func, dump, currStep)
-        currStep += incrSize
-        angList.clear()
-        atomList.clear()
-        # i+=1
-        # if(i>1):
-        #     break
-    plot(angleVals,"sim")
-    print(len(angleVals))
+        lammpsToXYZ("marked_dump.lammps", "marked_dump.xyz", {1:"Al", 2:"Mg", 3:"O", 4:"Si"})
+    #     print("\ncurrStep: " + str(currStep))
+    #     fillAtomList(dump, currStep)
+    #     #print("AtomList[0]: " + str(atomList[0]))
+    #     getAngleID(bonds,currStep)
+    #     calcAngles(currStep)
+    #     print("average value: " + str(sum(angleVals) / len(angleVals)))
+    #     markAtomsDumpAll(func, dump, currStep)
+    #     currStep += incrSize
+    #     angList.clear()
+    #     atomList.clear()
+    #     # i+=1
+    #     # if(i>1):
+    #     #     break
+    # plot(angleVals,"sim")
+    # print(len(angleVals))
 
 
 def getSimData(dump):
@@ -336,6 +337,30 @@ def markAtomsDumpAll(func, dump, currStep):
                 print(line, file=markedFile)
     dump.close()
     markedFile.close()
+
+def lammpsToXYZ(inputFile, outputFile,transDict):
+    #takes input of strings for names of input and output files, and a dictionary described below. 
+    #trans Dict should be in the following format:
+    #transDict = {1:Al,2:O} where 1 is the type that corresponds to Aluminum atoms. etc, fill for all types available. 
+    inp = open(inputFile,"r")
+    out = open(outputFile,"w")
+    inpLine = inp.readlines()
+    for i in range(len(inpLine)):
+        line = inpLine[i].rstrip('\n')
+        wordList = inpLine[i].split()
+        if(len(wordList) >= 2):
+            if (wordList[0] == "ITEM:"):
+                if(wordList[1] == "TIMESTEP"):
+                    myStep = int(inpLine[i+1].split()[0])
+                    print("Atoms. Timestep: " + str(myStep),out)
+                elif(wordList[1] == "NUMBER" and wordList[3] == "ATOMS"):
+                    numAtoms = int(inpLine[i+1].split()[0])
+                    print(str(numAtoms), out)
+            elif(len(wordList) > 5):
+                print(line, out)
+
+
+
 
 
 
