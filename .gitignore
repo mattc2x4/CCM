@@ -3,6 +3,8 @@ bonds.txt
 BondAngleAnalysis/findBondAngles.py
 BondAngleAnalysis/MD_bonds_final.reaxc
 BondAngleAnalysis/*.png
+BondAngleAnalysis/*.lammps
+BondAngleAnalysis/*.xyz
 AllMasterCodeHere/bonds.txt
 
 BondAngleAnalysis/findBondAngles.txt
