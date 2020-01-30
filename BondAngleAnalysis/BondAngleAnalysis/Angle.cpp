@@ -11,6 +11,10 @@ using namespace std;
 
 Angle::Angle(Atom *vertex){
 	vert = vertex;
+	end1 = NULL;
+	end2 = NULL;
+	measure = 0;
+
 
 
 }

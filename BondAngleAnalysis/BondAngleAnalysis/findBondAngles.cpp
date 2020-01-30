@@ -8,21 +8,13 @@
 #include <fstream>
 #include <string>
 #include <stdlib.h>
+#include "Angle.hpp"
+#include "Atom.hpp"
 
+//http://www.open-std.org/jtc1/sc22/wg21/docs/TR18015.pdf
+//checking!!
 
-
-
-struct Angle{
-	struct Atom *end1;
-	struct Atom *end2;
-	struct Atom *vert;
-	double measure;
-};
-
-struct Atom{
-	double x;
-	double y;
-	double z;
-	int id;
-	int type;
-};
+string dump = "dump_final.lammps";
+string bonds = "MD_bonds_final.reaxc";
+string markedXYZ = "marked_dump.xyz";
+string markedlammps = "marked_dump.lammps";

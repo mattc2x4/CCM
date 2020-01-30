@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 import scipy.stats
 import seaborn as sns
+import timeit
 """
 Created on Tue Oct 29 15:45:57 2019
 
@@ -54,15 +55,14 @@ def analyzeSimAndMark(dump, bonds, markedXYZ, markedlammps):
     #print(finalStep)
     incrSize = simData[2]
     # i = 0
-    print (simData)
+    #print (simData)
     while(currStep <= finalStep):
-        print()
-        print("\ncurrStep: " + str(currStep))
+        print("currStep: " + str(currStep))
         fillAtomList(dump, currStep)
         #print("AtomList[0]: " + str(atomList[0]))
         getAngleID(bonds,currStep)
         calcAngles(currStep)
-        print("average value: " + str(sum(angleVals) / len(angleVals)))
+        #print("average value: " + str(sum(angleVals) / len(angleVals)))
         markAtomsDumpAll(func, dump, markedlammps, currStep)
         currStep += incrSize
         angList.clear()
@@ -71,13 +71,13 @@ def analyzeSimAndMark(dump, bonds, markedXYZ, markedlammps):
         # if(i>1):
         #     break
     plot(angleVals,"sim")
-    print(len(angleVals))
+    #print(len(angleVals))
     lammpsToXYZ(markedlammps, markedXYZ, {1:"Al", 2:"Mg", 3:"O", 4:"Si"})
 
 
 def getSimData(dump):
     #this function returns a list [firstFrame, finalFrame, stepSize]
-    print("getting Sim Data")
+    #print("getting Sim Data")
     dump = open(dump,"r")
     numStepFound = 0
     step = []
@@ -99,7 +99,7 @@ def getSimData(dump):
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "TIMESTEP"):
             step.append(int(dumpLine[j+1].split()[0]))
             lastFound = True
-            print("last found")
+            #print("last found")
         j-=1
     stepSize = step[1] - step[0]
     #print(step)
@@ -115,7 +115,7 @@ def fillAtomList(dump,currStep):
     #finds meantions of timestep in header. compares with input (master) step. if it is greater than, breaks loop, allowing
     #main code to run instead. when it finds the correct 
     #updates Boxdim, which changes the box dimensions. this affects finding distance with periodic boundaries. 
-    print("filling atom list for " + str(currStep) + " step.")
+    #print("filling atom list for " + str(currStep) + " step.")
     startRead = False
     readBox = False
     step = False
@@ -147,7 +147,7 @@ def fillAtomList(dump,currStep):
             boxdim[0] = float(box1[1]) - float(box1[0])
             boxdim[1] = float(box2[1]) - float(box2[0])
             boxdim[2] = float(box3[1]) - float(box3[0])
-            print("updating boxdim: " + str(boxdim))
+            #print("updating boxdim: " + str(boxdim))
         if(dumpWord[0] == "ITEM:" and dumpWord[1] == "ATOMS" and readBox):    #when we see this header we want to skip this iteration, then continue on the next line, hence continue. 
             # print("found ATOMS header")
             # print(dumpWord)
@@ -155,7 +155,7 @@ def fillAtomList(dump,currStep):
             continue
         if (startRead and step):
             if (flag):
-                print("loading atoms")
+                #print("loading atoms")
                 # print(dumpWord)
                 flag = False
             atomList.append(Atom(float(dumpWord[3]), float(dumpWord[4]), float(dumpWord[5]), int(dumpWord[0]), int(dumpWord[1])))
@@ -191,7 +191,7 @@ def getAngleID(bonds,currStep):
     # This function will be called on each timestep. It will collect all angles in the timestep, and then add them to angList. this list
     #will be modified to calculate the angle later. 
     #call once to pull data as ID
-    print("getting angles for " + str(currStep) + " step.")
+    #print("getting angles for " + str(currStep) + " step.")
     bonds = open(bonds, "r")
     lineFile = bonds.readlines()
     read = False
@@ -202,12 +202,12 @@ def getAngleID(bonds,currStep):
             if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # this checks timestep. if timestep in file matches input, read lines.upon encountering another, break loop.
                 #print("\tCurrStep: " + str(currStep) + " Step found: " + wordList[2])
                 if(currStep == int(wordList[2])):
-                    print("\tfound timestep")
+                    #print("\tfound timestep")
                     read = True
                 elif(currStep > int(wordList[2])):
                     continue
                 else:
-                    print("\tbreaking\n")
+                    #print("\tbreaking\n")
                     break
             if (read == True and wordList[0] != '#'):
                 #print(str(atomList[int(wordList[0]) - 1].TYPE) + str(atomList[int(wordList[0]) - 1].TYPE == vertexType))
@@ -228,14 +228,14 @@ def getAngleID(bonds,currStep):
                            elif(endCount == 2):    #this is the second one we found, add time, reset counter.
                                 angList.append(Angle(int(wordList[0]),firstEndID,int(wordList[3+i]),currStep,-1))
                                 endCount = 0
-    print("\t" + str(len(angList)))
+    #print("\t" + str(len(angList)))
     bonds.close()
 
 def calcAngles(currStep):
     #this function will take the info in angList, and use it to calculate angle values based on the atom data in atomList.
     #called on angLIst once per timestep, though angList will contain all steps. may be problematic due to data sizes. 
     #TODO: modify this to decrease compexity based on what yoon wants. this dude needs to respond faster.
-    print("calcing Angles for: " + str(currStep) + " step.")
+    #print("calcing Angles for: " + str(currStep) + " step.")
     for ang in angList:
         if (ang.timestep == currStep):
             ang.angle = cosLaw(atomList[ang.vertID-1],atomList[ang.end1ID-1],atomList[ang.end2ID-1])
@@ -297,7 +297,7 @@ def markAtomsDumpAll(func, dump, markedlammps, currStep):
     marks = {1:10,2:20,3:30,4:40}          #if the angle fits the criteria described in func, it will be marked with the value here. Otherwise, it will be marked by its type.  
     markedFile = open(markedlammps, "a")
     dump = open(dump,"r")
-    print("Marking")
+    #print("Marking")
     step = False
     atomHeaderSeen = False
     for ang in angList:
@@ -350,7 +350,7 @@ def lammpsToXYZ(inputFile, outputFile,transDict):
     #takes input of strings for names of input and output files, and a dictionary described below. 
     #trans Dict should be in the following format:
     #transDict = {1:Al,2:O} where 1 is the type that corresponds to Aluminum atoms. etc, fill for all types available. 
-    print("converting lammps to xyz")
+    #print("converting lammps to xyz")
     inp = open(inputFile,"r")
     out = open(outputFile,"w")
     inpLine = inp.readlines()
@@ -381,7 +381,7 @@ def lammpsToXYZ(inputFile, outputFile,transDict):
                 print(xyzline, file=out)
     inp.close()
     out.close()
-    print("\tDone.")
+    #print("\tDone.")
 
 
 
