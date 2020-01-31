@@ -18,9 +18,6 @@ Created on Tue Oct 29 15:45:57 2019
 #atom type 3 = O
 #atom type 4 = Si
 
-vertexType = 1   #VERTEX AND END TYPES HERE.
-endType1 = 3    #the other two types you want to calculate angle of
-endType2 = 3
 
 """end Constants"""
 
@@ -43,10 +40,10 @@ def main():
     bonds = "MD_bonds_final.reaxc"
     markedXYZ = "marked_dump.xyz"
     markedlammps = "marked_dump.lammps"
-    analyzeSimAndMark(dump,bonds, markedXYZ,markedlammps)
+    analyzeSimAndMark(dump,bonds, markedXYZ,markedlammps,1,3,3)
  
 
-def analyzeSimAndMark(dump, bonds, markedXYZ, markedlammps):
+def analyzeSimAndMark(dump, bonds, markedXYZ, markedlammps, vertexType, endType1,endType2):
     #TODO: add different file name spots and make clear which are which, like for xyz translation and marked file names. 
     simData = getSimData(dump)
     currStep = simData[0]
@@ -60,7 +57,7 @@ def analyzeSimAndMark(dump, bonds, markedXYZ, markedlammps):
         print("currStep: " + str(currStep))
         fillAtomList(dump, currStep)
         #print("AtomList[0]: " + str(atomList[0]))
-        getAngleID(bonds,currStep)
+        getAngleID(bonds,currStep,vertexType,endType1,endType2)
         calcAngles(currStep)
         #print("average value: " + str(sum(angleVals) / len(angleVals)))
         markAtomsDumpAll(func, dump, markedlammps, currStep)
@@ -187,7 +184,7 @@ def cosLaw(vertAtom,endAtom1, endAtom2):
    #print(c)
    return(math.degrees(math.acos((a**2+b**2-c**2)/(2*a*b))))
    
-def getAngleID(bonds,currStep):
+def getAngleID(bonds,currStep,vertexType,endType1,endType2):
     # This function will be called on each timestep. It will collect all angles in the timestep, and then add them to angList. this list
     #will be modified to calculate the angle later. 
     #call once to pull data as ID

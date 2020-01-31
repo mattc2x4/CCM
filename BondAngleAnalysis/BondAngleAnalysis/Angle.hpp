@@ -20,7 +20,6 @@ public:
 	Atom *end2;
 	Atom *vert;
 	double measure;		//degrees
-	int measure;		//degrees
 
 	Angle(Atom *vert);
 

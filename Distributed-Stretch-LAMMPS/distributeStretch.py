@@ -32,25 +32,28 @@ def main():
     lmp1.command("run 0")
     natoms = lmp1.get_natoms()
     coordinates = lmp1.gather_atoms("x",1,3)
-    lmp1.command("thermo 1000")
+    #lmp1.command("thermo 1000")
     (currL, dt, numSteps) = getSimData(coordinates,natoms,mobileAtoms)
     v = .01
     numSteps = 3000
     for i in range(numSteps):
+        if (i % 1000) == 0:
+            lmp1.command("thermo_style one")
+            lmp1.command("thermo_style custom step")
         coordinates = lmp1.gather_atoms("x",1,3)
         if mpi_rank == 0:
             debug("Step: " + str(i) + "\n")
-            if (numSteps%1000):
-                debug("z Coord of atom ID PRE: " + str(mobileAtoms[0]) + " " + str(coordinates[3*mobileAtoms[0]+2]) + "\nCurrL: " + str(currL) + " v: " +  str(v))
+            # if (numSteps%1000):
+            #     debug("z Coord of atom ID PRE: " + str(mobileAtoms[0]) + " " + str(coordinates[3*mobileAtoms[0]+2]) + "\nCurrL: " + str(currL) + " v: " +  str(v))
         lmp1.command("fix 102 top move linear 0.0 0.0 " + str(v) + " units box")
         stretchMobile(coordinates, mobileAtoms,dt,v,currL)
         currL = updateL(currL, v,dt)
         lmp1.scatter_atoms("x",1,3,coordinates)
-        if mpi_rank == 0:
-            if (numSteps%1000):
-                debug("z Coord of atom ID POST: " + str(mobileAtoms[0]) + " : " + str(coordinates[3*mobileAtoms[0]+2]) + "\nUPDATED L: " + str(currL) + " v: " +  str(v))
+        #if mpi_rank == 0:
+            # if (numSteps%1000):
+            #     debug("z Coord of atom ID POST: " + str(mobileAtoms[0]) + " : " + str(coordinates[3*mobileAtoms[0]+2]) + "\nUPDATED L: " + str(currL) + " v: " +  str(v))
         lmp1.command("fix 60 mobile nvt temp 300.0 300.0 200")
-        lmp1.command("run 1")
+        lmp1.command("run 1 pre no post no")
     lmp1.command("unfix 60")
     lmp1.close()
     if mpi_rank == 0:

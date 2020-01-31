@@ -19,20 +19,3 @@ string bonds = "MD_bonds_final.reaxc";
 string markedXYZ = "marked_dump.xyz";
 string markedlammps = "marked_dump.lammps";
 
-
-
-
-struct Angle{
-	struct Atom *end1;
-	struct Atom *end2;
-	struct Atom *vert;
-	double measure;
-};
-
-struct Atom{
-	double x;
-	double y;
-	double z;
-	int id;
-	int type;
-};
