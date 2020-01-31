@@ -77,7 +77,7 @@ def analyzeSimAndMark(dump, bonds, markedXYZ, markedlammps):
 
 def getSimData(dump):
     #this function returns a list [firstFrame, finalFrame, stepSize]
-    #print("getting Sim Data")
+    print("getting Sim Data")
     dump = open(dump,"r")
     numStepFound = 0
     step = []
@@ -115,7 +115,7 @@ def fillAtomList(dump,currStep):
     #finds meantions of timestep in header. compares with input (master) step. if it is greater than, breaks loop, allowing
     #main code to run instead. when it finds the correct 
     #updates Boxdim, which changes the box dimensions. this affects finding distance with periodic boundaries. 
-    #print("filling atom list for " + str(currStep) + " step.")
+    print("filling atom list for " + str(currStep) + " step.")
     startRead = False
     readBox = False
     step = False
@@ -191,7 +191,7 @@ def getAngleID(bonds,currStep):
     # This function will be called on each timestep. It will collect all angles in the timestep, and then add them to angList. this list
     #will be modified to calculate the angle later. 
     #call once to pull data as ID
-    #print("getting angles for " + str(currStep) + " step.")
+    print("getting angles for " + str(currStep) + " step.")
     bonds = open(bonds, "r")
     lineFile = bonds.readlines()
     read = False
@@ -297,7 +297,7 @@ def markAtomsDumpAll(func, dump, markedlammps, currStep):
     marks = {1:10,2:20,3:30,4:40}          #if the angle fits the criteria described in func, it will be marked with the value here. Otherwise, it will be marked by its type.  
     markedFile = open(markedlammps, "a")
     dump = open(dump,"r")
-    #print("Marking")
+    print("Marking")
     step = False
     atomHeaderSeen = False
     for ang in angList:
@@ -350,7 +350,7 @@ def lammpsToXYZ(inputFile, outputFile,transDict):
     #takes input of strings for names of input and output files, and a dictionary described below. 
     #trans Dict should be in the following format:
     #transDict = {1:Al,2:O} where 1 is the type that corresponds to Aluminum atoms. etc, fill for all types available. 
-    #print("converting lammps to xyz")
+    print("converting lammps to xyz")
     inp = open(inputFile,"r")
     out = open(outputFile,"w")
     inpLine = inp.readlines()
@@ -381,7 +381,7 @@ def lammpsToXYZ(inputFile, outputFile,transDict):
                 print(xyzline, file=out)
     inp.close()
     out.close()
-    #print("\tDone.")
+    print("\tDone.")
 
 
 
