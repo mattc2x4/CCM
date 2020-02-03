@@ -7,12 +7,12 @@
 #include "Atom.hpp"
 using namespace std;
 
-Atom::Atom(int idVal){
-	x = 0;
-	y = 0;
-	z = 0;
+Atom::Atom(int idVal, double xloc, double yloc, double zloc, int atomtype){
 	id = idVal;
-	type = 0;
+	x = xloc;
+	y = yloc;
+	z = zloc;
+	type = atomtype;
 }
 
 

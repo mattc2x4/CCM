@@ -21,7 +21,7 @@ public:
 	Atom *vert;
 	double measure;		//degrees
 
-	Angle(Atom *vert);
+	Angle(Atom *vertex, Atom *End1, Atom *End2);
 
 };
 

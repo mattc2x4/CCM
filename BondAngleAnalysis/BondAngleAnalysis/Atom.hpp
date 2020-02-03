@@ -17,7 +17,7 @@ class Atom{
 	int id;
 	int type;
 
-	Atom(int idVal);
+	Atom(int idVal, double xloc, double yloc, double zloc, int atomtype);
 };
 
 

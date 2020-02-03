@@ -9,14 +9,11 @@
 using namespace std;
 #include<stdlib.h>
 
-Angle::Angle(Atom *vertex){
+Angle::Angle(Atom *vertex, Atom *End1, Atom *End2){
 	vert = vertex;
-	end1 = NULL;
-	end2 = NULL;
+	end1 = End1;
+	end2 = End2;
 	measure = 0;
-
-
-
 }
 
 
