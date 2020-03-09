@@ -35,9 +35,8 @@ void getSimData(int &firstFrame, int &lastFrame, int &step, const char* dump){
 	    if(strcmp(currWord, "ITEM:") == 0){
 	    	//cout<<"found ITEM header"<<endl;
 	    	currWord = strtok(NULL, " ");
-
 	    	//cout<<currWord<<endl;
-	    	if (strcmp(currWord,"TIMESTEP\n") == 0){		//TODO: figure out why it never reads the timestep header. lol
+	    	if (strcmp(currWord,"TIMESTEP\n") == 0){
 	    		cout<<"found timestep header"<<endl;
 	    		stepFound++;
 	    		readStep = true;
