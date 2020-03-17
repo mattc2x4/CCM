@@ -83,12 +83,12 @@ def main():
     getPairs(lineFile,Clist,Olist,Nlist,Hlist)
     getFormed(lineFile)
     getH2O(lineFile)
-    print('OHlist: ' + str(OHlist) + " len: "  + str(len(OHlist)))
-    print('CNlist: ' + str(CNlist) + str(len(CNlist)))
-    print("H2Olist: " + str(H2Olist) + " len: " + str(len(H2Olist)))
-    print("OHremove: " + str(OHremove)  + " len " + str(len(OHremove)))
+    # print('OHlist: ' + str(OHlist) + " len: "  + str(len(OHlist)))
+    # print('CNlist: ' + str(CNlist) + str(len(CNlist)))
+    #print("H2Olist: " + str(H2Olist) + " len: " + str(len(H2Olist)))
+    #print("OHremove: " + str(OHremove)  + " len " + str(len(OHremove)))
     mergeCONH()
-    print("BondList: " + str(bondList)+ " len: " + str(len(bondList)))
+    #print("BondList: " + str(bondList)+ " len: " + str(len(bondList)))
     print("bonds: "  + str(len(bondList) ))
     print("H2O: "  + str(len(H2Olist) ))
     print("OH: "  + str(len(OHlist) ))
@@ -166,7 +166,7 @@ def getNH(Nlist,Hlist,wordList):
 def getPairs(lineFile,Clist,Olist,Nlist,Hlist):
     #calls getCO and getNH on every line in the first timestep
     currStep = -1
-    print("in findPairs")
+    #print("in findPairs")
     for line in lineFile:       #loops through each line of the file
         wordList = line.split()
         if (len(wordList) > 2):
@@ -181,7 +181,7 @@ def getPairs(lineFile,Clist,Olist,Nlist,Hlist):
 
 
 def mergeCONH():
-    print('in mergeCONH')
+    #print('in mergeCONH')
     for CN in CNlist:       #get CN
         for CO in COlist:       #find Carbon initial bond
             if (CN[0] == CO[0]):        #Match C between CN and CO
