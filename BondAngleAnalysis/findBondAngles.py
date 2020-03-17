@@ -41,7 +41,6 @@ def main():
     markedXYZ = "marked_dump.xyz"
     markedlammps = "marked_dump.lammps"
     analyzeSimAndMark(dump,bonds, markedXYZ,markedlammps,1,3,3)
- 
 
 def analyzeSimAndMark(dump, bonds, markedXYZ, markedlammps, vertexType, endType1,endType2):
     #TODO: add different file name spots and make clear which are which, like for xyz translation and marked file names. 
@@ -404,6 +403,7 @@ class Atom:
         self.z = z
         self.ID = ID
         self.TYPE = TYPE
+        self.neighbors = []
     def __str__(self):      #printing atom object will yield the following
         return ("Atom ID: " + str(self.ID) + "\n" + "TYPE: " + str(self.TYPE) + "\n" + "X: " + str(self.x) + "\n" + "Y: " + str(self.y) + "\n" + "Z: " + str(self.z))
 
@@ -415,6 +415,7 @@ class Angle:
         self.end2ID = end2ID
         self.timestep = timestep
         self.angle = angle
+        self.bondStrength = 0
     def __str__(self):      #printing angle object will yield the following
         return ("Vertex ID: " + str(self.vertID) + "\n" + "End1ID: " + str(self.end1ID) + "\n" + "End2ID: " + str(self.end2ID) + "\n" + "Timestep: " + str(self.timestep) + "\n" + "angle: " + str(self.angle) + "\n")
 
