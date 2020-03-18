@@ -38,6 +38,8 @@ exclude = []    #modified in excludeN, containts N ID's which have 2 active C bo
 nonH = []
 nonC = []       #non: nonactive of __ type
 nonCH = []
+nonCO = []
+atom_id_dict = {} #dictionary to store atom and molecule id 
 #should only be accessed by things that require input as ID, or subtract one. 
 #new array: 2d.  restID[0][i] will be associated with a group that is valid to recieve restraint force. written in order [C,O,N,H]
 #restOD[i][0] = C, restOD[i][1] = O, restOD[i][2] = N, restOD[i][3] = H
@@ -46,7 +48,7 @@ restID = []
 # energy equation parameters (F1, F2)
 # F1OC = 50
 # F2OC = 0.5
-# F1OH = 250
+# F1OH = 50
 # F2OH = 0.75
 # F1CN = 300
 # F2CN = 0.75
@@ -55,7 +57,7 @@ boxdim = [0] *3
 
 F1OC = 75
 F2OC = 1.0
-F1OH = 200
+F1OH = 50
 F2OH = 0.75
 F1CN = 300
 F2CN = 0.75
@@ -87,13 +89,11 @@ bondID = []
 #time step
 timestep = 50000
 
-
-
-
+#true if you want all C's and H's to have a force applied. 
+CHtag = True
 
 #file which will contain every single instance where we apply restraint energy
 #type is A, which means that rather than writing over the file, which is the case in rest-data.txt, it will log every instance of restraint case being met.
-newfile = open("rest-ALLdata.txt",'a')
 coordFile = open("coord.txt",'a')
 
 
@@ -101,9 +101,7 @@ coordFile = open("coord.txt",'a')
 def main():
     
     # import libraries
-    # print "got here..."
     from mpi4py import MPI
-    # print "and here"
     my_rank = MPI.COMM_WORLD.Get_rank()
     size = MPI.COMM_WORLD.Get_size()
     from lammps import lammps
@@ -130,8 +128,9 @@ def main():
         getNH()
         if(CHtag):
             getCH()
+        getCO()      #CHANGE
+        writeatomid(atom_id_dict)
     for i in range(100):
-        newfile = open("rest-ALLdata.txt",'a')
         #gets global quantity ntimestep (current timestep) in lammps.  more extractable stuff can be viewed in library.cpp
         currentStep = lmp1.extract_global("ntimestep",0)
         natoms = lmp1.get_natoms()
@@ -142,16 +141,12 @@ def main():
         atomType = lmp1.gather_atoms("type",0,1)
         if(my_rank == 0):
             coordFile.write("Time Step: " + str(currentStep) + "\n")
-            search(natoms, atomType, coordinates,currentStep)
-            if(CHtag):
-                writeCH()
+            search(natoms, atomType, coordinates,currentStep,atom_id_dict)
         MPI.COMM_WORLD.Barrier()
         lmp1.command("run " + str(timestep)) # lmp1.command("run 100000")
-        newfile.close() 
     lmp1.close()
-
     if my_rank == 0:
-        print "End of run"
+        print ("End of run")
         MPI.Finalize()
     # End of python script
     
@@ -161,12 +156,13 @@ def main():
 # supporting functions below
 #--------------------------#
 
-def search(natoms, atomType, c,currentStep): # c = coordinates
+def search(natoms, atomType, c,currentStep,atom_id_dict): # c = coordinates
     # this function is used to search for atom pairs and to produce a
     # data file "rest-data.txt"
     # in nested for loops: i = Carbon, j = Oxygen, k = Nitrogen, m = Hydrogen; don't confuse address with id; address = id - 1
     #makes calls to validGroup, to check N and H items.
     #makes call to findOptimal, to remove competing groups. 
+    newfile = open("rest-ALLdata.txt", 'a')
     coordFile = open("coord.txt",'a')
     restID = []
     for i in range(0,natoms):
@@ -186,6 +182,7 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
                                     #newfile.write("\nO\n ID: " + str(j+1) + " X: " + str(c[j*3]) + " Y: " + str(c[j*3+1]) + " Z: " + str(c[j*3+2]))
                                     #newfile.write("\nN\n ID: " + str(k+1) + " X: " + str(c[k*3]) + " Y: " + str(c[k*3+1]) + " Z: " + str(c[k*3+2]))
                                     #newfile.write("\nH\n ID: " + str(m+1) + " X: " + str(c[m*3]) + " Y: " + str(c[m*3+1]) + " Z: " + str(c[m*3+2]))
+    exclude_C(atom_id_dict,c,restID) #CHANGE
     difFile = open("difFile.txt",'a')
     difFile.write("Current Step: " + str(currentStep) +"\n NHlist: " + str(NHlist) + "\n")
     if (NHlist):
@@ -231,17 +228,14 @@ def search(natoms, atomType, c,currentStep): # c = coordinates
         newfile.write("\n" + str(restID[i][1]) + " " + str(restID[i][0]) + " " + str(R12OC) + " " + str(F1OC) + " " + str(F2OC) + " " + str(COdist[0]) + " " + str(COdist[1]))
         newfile.write("\n" + str(restID[i][1]) + " " + str(restID[i][3]) + " " + str(R12OH) + " " + str(F1OH) + " " + str(F2OH) + " " + str(OHdist[0]) + " " + str(OHdist[1]))
         newfile.write("\n" + str(restID[i][0]) + " " + str(restID[i][2]) + " " + str(R12CN) + " " + str(F1CN) + " " + str(F2CN) + " " + str(NCdist[0]) + " " + str(NCdist[1]))
-
-        
+    if(CHtag):
+        writeCH(newfile,restfile)
+    difFile = open("difFile.txt",'a')
+    writeCO(difFile,restfile)     
     restfile.close()
+    difFile.close()
+    newfile.close()
     coordFile.close()
-
-  #  newfile.write("\n" + "timestep: " + str(currentStep))
-#    if (str(len(restID)) == 0):
-#        newfile.close()
-#        coordFile.close()
-
-        
     return 0
 
 
@@ -416,14 +410,98 @@ def getCH():
     f.close() 
     difFile.close()
     
-def writeCH():
+def writeCH(difFile,restfile):
     #will write all CH pairs to the rest-data file. meant to be toggleable. 
-    difFile = open("difFile.txt",'a')
-    restfile = open("rest-data.txt",'w')
+    #difFile = open("rest-ALLdata.txt",'a')
+    #restfile = open("rest-data.txt",'w')
     for CH in nonCH:
         difFile.write("\n" + str(CH[0]) + " " + str(CH[1]) + " " + str(1.1) + " " + str(200) + " " + str(.75) + " " + str(COdist[0]) + " " + str(COdist[1]))
         restfile.write("\n" + str(CH[0]) + " " + str(CH[1]) + " " + str(1.1) + " " + str(200) + " " + str(.75) + " " + str(COdist[0]) + " " + str(COdist[1]))
+    #difFile.close()
+    #restfile.close()
+
+
+
+
+def getCO():
+    #pls remove most of the write statements which were only there for checking purposes
+    difFile=open("difFile.txt",'a')
+    f=open("bonds.txt",'r')
+    lineFile=f.readlines()
+    for line in lineFile:
+        wordList=line.split()
+        if (len(wordList) > 2):
+            if ((wordList[0] == '#') and (wordList[1] == 'Timestep')):
+                currStep=int(wordList[2])
+            if ((currStep == 0) and (wordList[0] != '#')):
+                add = True
+                if ((int(wordList[0]) in Clist) and  add):
+                    bondnum=int(wordList[2])
+                    (Oxycheck,NonCcheck)=(False,False)
+                    for i in range(bondnum):
+                        if int(wordList[3+i]) in Olist:
+                            Oxycheck=True
+                            Oxyindex=3+i 
+                        if int(wordList[3+i]) in nonC:
+                            NonCcheck=True
+                            NonCindex=3+i
+                    if Oxycheck and NonCcheck:
+                        nonCO.append([int(wordList[NonCindex]),int(wordList[Oxyindex])])  
+    difFile.write("COlist: " + str(nonCO) + " within getNH\n")
+    f.close() 
     difFile.close()
-    restfile.close()
-     
+                        
+                                   
+def writeCO(difFile,restfile):
+    tempnew=open('CO_debug_testing.txt','w')
+    for CO in nonCO:
+        difFile.write("\n" + str(CO[0]) + " " + str(CO[1]) + " " + str(1.1) + " " + str(200) + " " + str(.75) + " " + str(COdist[0]) + " " + str(COdist[1]))
+        tempnew.write("\n" + str(CO[0]) + " " + str(CO[1]) + " " + str(1.1) + " " + str(200) + " " + str(.75) + " " + str(COdist[0]) + " " + str(COdist[1]))
+        restfile.write("\n" + str(CO[0]) + " " + str(CO[1]) + " " + str(1.1) + " " + str(200) + " " + str(.75) + " " + str(COdist[0]) + " " + str(COdist[1]))
+    tempnew.close()
+
+def writeatomid(atom_id_dict):
+    #Writes the atom ids inot the dictionary to be used in the Exclude C function
+    
+    f=open("8Epon-4DETDA-H.txt","r")
+    g=open("Temp_Atom_id.txt","w")
+    currStep=-1
+    lineFile = f.readlines() #makes a list with each element of the list pertaining to a line in the file
+    for line in lineFile:       #loops through each line of the file
+        wordList=line.split()
+        if (len(wordList) > 4): 
+            atom_id_dict[wordList[0]]=wordList[1] #assigning atomid to atom name 
+    for i in atom_id_dict:
+        g.write("Atom ID:"+" "+str(i)+" "+"Molecule Id:"+" "+str(atom_id_dict[i])+'\n') #just for testing purporses
+    g.write(str(atom_id_dict)+"\n") 
+    f.close()
+    g.close()
+
+
+def exclude_C(atom_id_dict,coord,restID):
+    g=open("Temp_Atom_id.txt","a")
+    g.write(str(restID)+"\n")
+    delete_index=[] # will contain the indices which will be deleted
+    for i in range(len(restID)):
+        for j in range(len(restID)):
+            if (atom_id_dict[str(restID[i][0])]==atom_id_dict[str(restID[j][0])]) and  (i != j) and (restID[i][0] != restID[j][0]):  #checks whether two C's share the same molecule #id's in form of string
+                if getPerim(restID[i],coord) < getPerim(restID[j],coord): #if Perimeter is greater for the second group, delete it
+                    if j not in delete_index:
+                        delete_index.append(j)
+                        g.write("Groups to be deleted:"+str(restID[j])+'\n')
+                else:
+                    if i not in delete_index:
+                        delete_index.append(i)
+                        g.write("Groups to be deleted:"+str(restID[i])+'\n')
+    g.write(str(delete_index)+'\n')
+    g.close()
+    count=0
+    for i in range(len(delete_index)):
+        del restID[delete_index[i]]
+        count=count+1
+        if i==len(delete_index)-1:
+            continue
+        else:
+            delete_index[i+1]-=count
+    
 main()

@@ -1,0 +1,144 @@
+#Constants involved in force app
+F1OH = 50
+F2OH = 0.75
+R12OH = 1.05
+OHbondDist = [.85 , 1.2]
+
+#Simulation based data
+restID = []
+timestep = 50000
+boxdim = [0] *3
+gpsOType = 9
+gpsHType = 8
+gpsSiType = 5
+silHType = 3
+silOType = 10
+
+#dictionaries which contain special atom ID's
+#active denoting that they will recieve force
+activeSilO = {}
+activeGpsO = {}
+activeGpsH = {}
+SilHList = {}
+gpsSiList = {}
+gpsOList = {}
+
+
+def main():
+    # import libraries
+    from mpi4py import MPI
+    my_rank = MPI.COMM_WORLD.Get_rank()
+    size = MPI.COMM_WORLD.Get_size()
+    from lammps import lammps
+
+    if my_rank == 0:
+        print ("begin python script")
+
+    # user input; global variables
+    lammpsScript = "in.accelerated-test.txt"
+    lammpsArgs = ["-echo","log"]
+
+    #--------------END OF USER DEFINED PARAMETERS--------------------------------------
+
+    # run lammps script
+    lmp1 = lammps(comm=MPI.COMM_WORLD,cmdargs=lammpsArgs)  #lammps(cmdargs=lammpsArgs) 
+    lmp1.file(lammpsScript)
+    lmp1.command("run 0")
+    natoms = lmp1.get_natoms()
+    coordinates = lmp1.gather_atoms("x",1,3)
+    atomType = lmp1.gather_atoms("type",0,1)
+    getActiveAtoms()
+    for i in range(100):
+        currentStep = lmp1.extract_global("ntimestep",0)
+        natoms = lmp1.get_natoms()
+        boxdim[0] = lmp1.extract_global("boxxhi",1)
+        boxdim[1] = lmp1.extract_global("boxyhi",1)
+        boxdim[2] = lmp1.extract_global("boxzhi",1)
+        coordinates = lmp1.gather_atoms("x",1,3)
+        atomType = lmp1.gather_atoms("type",0,1)
+        if(my_rank == 0):
+            #coordFile.write("Time Step: " + str(currentStep) + "\n")
+            search(natoms, atomType, coordinates,currentStep)
+        MPI.COMM_WORLD.Barrier()
+        lmp1.command("run " + str(timestep))
+    lmp1.close()
+    if my_rank == 0:
+        print ("End of run")
+        MPI.Finalize()
+
+
+def search(natoms, atomType, c,currentStep,atom_id_dict):
+    #code
+    return 0
+
+def getActiveAtoms():
+    #gets active O's in silica, and active OH in gps.
+    difFile = open("difFile.txt",'a')
+    f = open("bonds.txt", "r")
+    currStep = -1
+    lineFile = f.readlines()
+    for line in lineFile:       #loops through each line of the file
+        wordList = line.split()
+        if (len(wordList) > 2):
+            if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
+                currStep = int(wordList[2])
+            if (currStep == 0 and wordList[0] != '#'):
+                if (int(wordList[0]) in SilHList):
+                    bondnum = int(wordList[2])       #gets number of bond this atom has.
+                    for i in range(bondnum):
+                        activeSilO[int(wordList[3 + i])] = 1     #adds every atom bonded to H in silicone to activeSilO, should only be oxygens.
+                elif(int(wordList[0]) in gpsSiList):
+                    bondnum = int(wordList[2])       #gets number of bond this atom has.
+                    for i in range(bondnum):
+                        if(int(wordList[3+i]) in gpsOList):
+                            activeGpsO[int(wordList[3 + i])] = 1     #adds every atom bonded to H in silicone to activeGpsO, should only be oxygens.
+    
+    #this section has to have the gps O loaded to work, so it goes after. It gets the activeGpsH, which is bonded to the O.
+    #look for activeGpsO and record things they're bonded to, as long as it isnt a Si.
+    for line in lineFile:       #loops through each line of the file
+        wordList = line.split()
+        if (len(wordList) > 2):
+            if (wordList[0] == '#' and wordList[1] == 'Timestep'):      # the hashtag starts the header area
+                currStep = int(wordList[2])
+            if (currStep == 0 and wordList[0] != '#'):
+                if (int(wordList[0]) in activeGpsO):
+                    bondnum = int(wordList[2])       #gets number of bond this atom has.
+                    for i in range(bondnum):
+                        if(wordList[3+i] not in gpsSiList):
+                            activeGpsH[int(wordList[3 + i])] = 1
+
+                        
+    
+
+
+                        
+
+
+def getTypes(atomType):
+    #gets H's in silica slab, used to find active O's.
+    #gets Si's in gps to find active O's
+    #gets all O's in gps to differentiate from the C thats bonded to a silicone.
+    #stores as atom ID.
+    #call at step zero, should never change.
+    for i in range(len(atomType)):
+        if (atomType[i] == silHType):
+            SilHList[i+1] += 1
+        elif (atomType[i] == gpsSiType):
+            gpsSiList[i+1] += 1
+        elif (atomType[i] == gpsOType):
+                gpsOList[i+1] += 1
+
+def distance(address1, address2,coordinates):
+    # this function is used to calculate the distance between 2 atoms.  Input is the address (not id!) of the two atoms
+    #boxdim has x, y, z dimensions of box as array, 0 = x, 1 = y, 2 = z
+    #see reac.f "dista2" function
+    dx = coordinates[3*address1] - coordinates[3*address2]
+    dy = coordinates[3*address1+1] - coordinates[3*address2+1]
+    dz = coordinates[3*address1+2] - coordinates[3*address2+2]
+    dx = dx - round(dx/boxdim[0]) * boxdim[0]
+    dy = dy - round(dy/boxdim[1]) * boxdim[1]
+    dz = dz - round(dz/boxdim[2]) * boxdim[2]
+    dr = (dx*dx + dy*dy + dz*dz)**(0.5)
+    return dr
+
+main()
