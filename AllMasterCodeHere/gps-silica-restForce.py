@@ -8,11 +8,11 @@ OHbondDist = [.85 , 1.2]
 restID = []
 timestep = 50000
 boxdim = [0] *3
-gpsOType = 9
-gpsHType = 8
+gpsOType = 4
+gpsHType = 7
 gpsSiType = 5
 silHType = 3
-silOType = 10
+silOType = 2
 
 #dictionaries which contain special atom ID's
 #active denoting that they will recieve force
@@ -47,20 +47,21 @@ def main():
     natoms = lmp1.get_natoms()
     coordinates = lmp1.gather_atoms("x",1,3)
     atomType = lmp1.gather_atoms("type",0,1)
+    getTypes(atomType)
     getActiveAtoms()
-    for i in range(100):
-        currentStep = lmp1.extract_global("ntimestep",0)
-        natoms = lmp1.get_natoms()
-        boxdim[0] = lmp1.extract_global("boxxhi",1)
-        boxdim[1] = lmp1.extract_global("boxyhi",1)
-        boxdim[2] = lmp1.extract_global("boxzhi",1)
-        coordinates = lmp1.gather_atoms("x",1,3)
-        atomType = lmp1.gather_atoms("type",0,1)
-        if(my_rank == 0):
-            #coordFile.write("Time Step: " + str(currentStep) + "\n")
-            search(natoms, atomType, coordinates,currentStep)
-        MPI.COMM_WORLD.Barrier()
-        lmp1.command("run " + str(timestep))
+    # for i in range(100):
+    #     currentStep = lmp1.extract_global("ntimestep",0)
+    #     natoms = lmp1.get_natoms()
+    #     boxdim[0] = lmp1.extract_global("boxxhi",1)
+    #     boxdim[1] = lmp1.extract_global("boxyhi",1)
+    #     boxdim[2] = lmp1.extract_global("boxzhi",1)
+    #     coordinates = lmp1.gather_atoms("x",1,3)
+    #     atomType = lmp1.gather_atoms("type",0,1)
+    #     if(my_rank == 0):
+    #         #coordFile.write("Time Step: " + str(currentStep) + "\n")
+    #         search(natoms, atomType, coordinates,currentStep)
+    #     MPI.COMM_WORLD.Barrier()
+    #     lmp1.command("run " + str(timestep))
     lmp1.close()
     if my_rank == 0:
         print ("End of run")
@@ -74,6 +75,7 @@ def search(natoms, atomType, c,currentStep,atom_id_dict):
 def getActiveAtoms():
     #gets active O's in silica, and active OH in gps.
     difFile = open("difFile.txt",'a')
+    #difFile.write("entering getActiveAtoms\n")
     f = open("bonds.txt", "r")
     currStep = -1
     lineFile = f.readlines()
@@ -84,9 +86,12 @@ def getActiveAtoms():
                 currStep = int(wordList[2])
             if (currStep == 0 and wordList[0] != '#'):
                 if (int(wordList[0]) in SilHList):
+                    #difFile.write("found SilH\n")
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
                         activeSilO[int(wordList[3 + i])] = 1     #adds every atom bonded to H in silicone to activeSilO, should only be oxygens.
+                        #difFile.write("adding SilO\n")
+
                 elif(int(wordList[0]) in gpsSiList):
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
@@ -104,8 +109,13 @@ def getActiveAtoms():
                 if (int(wordList[0]) in activeGpsO):
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
-                        if(wordList[3+i] not in gpsSiList):
+                        if(int(wordList[3+i]) not in gpsSiList):
                             activeGpsH[int(wordList[3 + i])] = 1
+    difFile.write("activeSilO: " + str(activeSilO) + "\n")
+    difFile.write("activeGpsH: " + str(activeGpsH) + "\n")
+    difFile.write("activeGpsO: " + str(activeGpsO) + "\n")
+    f.close()
+    difFile.close()
 
                         
     
@@ -120,13 +130,17 @@ def getTypes(atomType):
     #gets all O's in gps to differentiate from the C thats bonded to a silicone.
     #stores as atom ID.
     #call at step zero, should never change.
+    difFile = open("difFile.txt",'a')
     for i in range(len(atomType)):
         if (atomType[i] == silHType):
-            SilHList[i+1] += 1
+            SilHList[i+1] = 1
         elif (atomType[i] == gpsSiType):
-            gpsSiList[i+1] += 1
+            gpsSiList[i+1] = 1
         elif (atomType[i] == gpsOType):
-                gpsOList[i+1] += 1
+                gpsOList[i+1] = 1
+    difFile.write("SilHList: " + str(SilHList) + "\n")
+    difFile.write("gpsOList: " + str(gpsOList) + "\n")
+    difFile.write("gpsSiList: " + str(gpsSiList) + "\n")
 
 def distance(address1, address2,coordinates):
     # this function is used to calculate the distance between 2 atoms.  Input is the address (not id!) of the two atoms
