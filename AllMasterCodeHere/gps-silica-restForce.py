@@ -2,7 +2,7 @@
 F1OH = 50
 F2OH = 0.75
 R12OH = 1.05
-OHbondDist = [.85 , 1.2]
+OHdist = [1.5, 8.0]
 
 #Simulation based data
 restID = []
@@ -68,8 +68,17 @@ def main():
         MPI.Finalize()
 
 
-def search(natoms, atomType, c,currentStep,atom_id_dict):
-    #code
+def search(natoms, atomType, c,currentStep):
+    #goes throught the active type dictionaries and gets the groups which satisfy distance criteria. not 100%sure what to use for that yet though.
+    # for silO in activeSilO:
+    #     for gpsH in activeGpsH:
+    #         if (OHdist[0] > distance(silO-1, gpsH-1, c) and distance(silO-1, gpsH-1, c) < OHdist[1]):
+    #             for 
+     return 0
+
+
+def removeInoptimalGroups():
+    #removes groups that contain the same silica or gps OH, based on which are the fatherst away from each other.
     return 0
 
 def getActiveAtoms():
@@ -110,18 +119,13 @@ def getActiveAtoms():
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
                         if(int(wordList[3+i]) not in gpsSiList):
-                            activeGpsH[int(wordList[3 + i])] = 1
+                            #activeGpsH[int(wordList[3 + i])] = 1
+                            activeGpsO[wordList[0]] = int(wordList[3 + i])  #makes value of activeGpsO the H bonded with it. 
     difFile.write("activeSilO: " + str(activeSilO) + "\n")
     difFile.write("activeGpsH: " + str(activeGpsH) + "\n")
     difFile.write("activeGpsO: " + str(activeGpsO) + "\n")
     f.close()
-    difFile.close()
-
-                        
-    
-
-
-                        
+    difFile.close()  
 
 
 def getTypes(atomType):
