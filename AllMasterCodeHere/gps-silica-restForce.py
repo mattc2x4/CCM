@@ -5,7 +5,7 @@ R12OH = 1.05
 OHdist = [1.5, 8.0]
 
 #Simulation based data
-restID = []
+restID = []     #[[gpsO, silH, silO, gpsH],...]
 timestep = 50000
 boxdim = [0] *3
 gpsOType = 4
@@ -49,19 +49,19 @@ def main():
     atomType = lmp1.gather_atoms("type",0,1)
     getTypes(atomType)
     getActiveAtoms()
-    # for i in range(100):
-    #     currentStep = lmp1.extract_global("ntimestep",0)
-    #     natoms = lmp1.get_natoms()
-    #     boxdim[0] = lmp1.extract_global("boxxhi",1)
-    #     boxdim[1] = lmp1.extract_global("boxyhi",1)
-    #     boxdim[2] = lmp1.extract_global("boxzhi",1)
-    #     coordinates = lmp1.gather_atoms("x",1,3)
-    #     atomType = lmp1.gather_atoms("type",0,1)
-    #     if(my_rank == 0):
-    #         #coordFile.write("Time Step: " + str(currentStep) + "\n")
-    #         search(natoms, atomType, coordinates,currentStep)
-    #     MPI.COMM_WORLD.Barrier()
-    #     lmp1.command("run " + str(timestep))
+    for i in range(1):
+        currentStep = lmp1.extract_global("ntimestep",0)
+        natoms = lmp1.get_natoms()
+        boxdim[0] = lmp1.extract_global("boxxhi",1)
+        boxdim[1] = lmp1.extract_global("boxyhi",1)
+        boxdim[2] = lmp1.extract_global("boxzhi",1)
+        coordinates = lmp1.gather_atoms("x",1,3)
+        atomType = lmp1.gather_atoms("type",0,1)
+        if(my_rank == 0):
+            #coordFile.write("Time Step: " + str(currentStep) + "\n")
+            search(natoms, atomType, coordinates,currentStep)
+        MPI.COMM_WORLD.Barrier()
+        lmp1.command("run " + str(timestep))
     lmp1.close()
     if my_rank == 0:
         print ("End of run")
@@ -70,11 +70,16 @@ def main():
 
 def search(natoms, atomType, c,currentStep):
     #goes throught the active type dictionaries and gets the groups which satisfy distance criteria. not 100%sure what to use for that yet though.
-    # for silO in activeSilO:
-    #     for gpsH in activeGpsH:
-    #         if (OHdist[0] > distance(silO-1, gpsH-1, c) and distance(silO-1, gpsH-1, c) < OHdist[1]):
-    #             for 
-     return 0
+    for gpsO in activeGpsO:
+        for silO in activeSilO:
+            silOgpsHdist = distance(activeGpsO[gpsO]-1, silO-1, c)
+            silHgpsOdist = distance(activeSilO[silO] - 1, gpsO-1,c)
+            if(OHdist[0] < silHgpsOdist  and silHgpsOdist < OHdist[1] and OHdist[0] < silOgpsHdist and silOgpsHdist < OHdist[1]):
+                restID.append([gpsO, activeSilO[silO], silO, activeGpsO[gpsO]])
+    newfile = open("rest-ALLdata.txt", 'a')
+    newfile.write("restID: " + str(restID))
+
+         
 
 
 def removeInoptimalGroups():
@@ -98,10 +103,10 @@ def getActiveAtoms():
                     #difFile.write("found SilH\n")
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
-                        activeSilO[int(wordList[3 + i])] = 1     #adds every atom bonded to H in silicone to activeSilO, should only be oxygens.
+                        activeSilO[int(wordList[3 + i])] = int(wordList[0])     #adds every atom bonded to H in silicone to activeSilO, should only be oxygens.
                         #difFile.write("adding SilO\n")
 
-                elif(int(wordList[0]) in gpsSiList):
+                elif(int(wordList[0]) in gpsSiList):        #this is for getting gps O's
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
                         if(int(wordList[3+i]) in gpsOList):
