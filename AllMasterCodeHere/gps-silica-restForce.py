@@ -119,8 +119,8 @@ def getActiveAtoms():
                     bondnum = int(wordList[2])       #gets number of bond this atom has.
                     for i in range(bondnum):
                         if(int(wordList[3+i]) not in gpsSiList):
-                            #activeGpsH[int(wordList[3 + i])] = 1
-                            activeGpsO[wordList[0]] = int(wordList[3 + i])  #makes value of activeGpsO the H bonded with it. 
+                            activeGpsH[int(wordList[3 + i])] = 1
+                            activeGpsO[int(wordList[0])] = int(wordList[3 + i])  #makes value of activeGpsO the H bonded with it. 
     difFile.write("activeSilO: " + str(activeSilO) + "\n")
     difFile.write("activeGpsH: " + str(activeGpsH) + "\n")
     difFile.write("activeGpsO: " + str(activeGpsO) + "\n")
