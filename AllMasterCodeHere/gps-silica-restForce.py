@@ -86,6 +86,9 @@ def removeInoptimalGroups():
     #removes groups that contain the same silica or gps OH, based on which are the fatherst away from each other.
     return 0
 
+def deleteWater():
+    return 0
+
 def getActiveAtoms():
     #gets active O's in silica, and active OH in gps.
     difFile = open("difFile.txt",'a')
